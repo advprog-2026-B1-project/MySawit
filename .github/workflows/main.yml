@@ -9,6 +9,22 @@ on:
 jobs:
   build-and-analyze:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: mysawit
+          POSTGRES_USER: mysawit
+          POSTGRES_PASSWORD: penyakitsawitgila
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U mysawit"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,11 +43,18 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: Build and Lint with Caching
+      - name: Build, Test & Lint
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/mysawit
+          SPRING_DATASOURCE_USERNAME: mysawit
+          SPRING_DATASOURCE_PASSWORD: penyakitsawitgila
         run: ./gradlew clean build check --configuration-cache
 
-      - name: SonarCloud Analysis with Caching
+      - name: SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/mysawit
+          SPRING_DATASOURCE_USERNAME: mysawit
+          SPRING_DATASOURCE_PASSWORD: penyakitsawitgila
         run: ./gradlew sonar --configuration-cache -Dsonar.qualitygate.wait=true
