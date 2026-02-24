@@ -11,6 +11,15 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(
+        name = "hasil_panen",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_hasil_panen_worker_date",
+                        columnNames = {"worker_id", "tanggal_panen"}
+                )
+        }
+)
 public class HasilPanen {
 
     @Id
@@ -25,7 +34,9 @@ public class HasilPanen {
     @JoinColumn(name = "kebun_id")
     private Kebun kebun;
 
+    @Column(name = "tanggal_panen", nullable = false)
     private LocalDate tanggalPanen;
+
     private BigDecimal kilogram;
     private String berita;
 
