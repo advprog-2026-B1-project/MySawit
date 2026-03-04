@@ -9,6 +9,10 @@ on:
 jobs:
   build-and-analyze:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./backend
     
     services:
       postgres:
