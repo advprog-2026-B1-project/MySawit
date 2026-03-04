@@ -6,8 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class MySawitApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(MySawitApplication.class, args);
-    }
+    // NOSONAR
+    public static void main(String[] args) { 
+        SpringApplication.run(MySawitApplication.class, args); // test
+    } // test
 
 }
