@@ -54,6 +54,16 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: penyakitsawitgila
         run: ./gradlew clean build check --configuration-cache
 
+      - name: Debug SONAR_TOKEN
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "SONAR_TOKEN is EMPTY"
+          else
+            echo "SONAR_TOKEN is SET"
+          fi
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
