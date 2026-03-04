@@ -21,7 +21,6 @@ import java.time.OffsetDateTime;
         }
 )
 public class HasilPanen {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
