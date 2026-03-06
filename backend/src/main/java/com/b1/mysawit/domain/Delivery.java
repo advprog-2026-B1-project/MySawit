@@ -28,16 +28,55 @@ public class Delivery {
     @JoinColumn(name = "hasil_panen_id")
     private HasilPanen hasilPanen;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private Status status = Status.Memuat;
 
-    private BigDecimal rejectedKg;
-    private String rejectionReason;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MandorDecision mandorDecision = MandorDecision.Pending;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AdminDecision adminDecision = AdminDecision.Pending;
+
+    private BigDecimal acknowledgedKg;
+
+    private String mandorRejectionReason;
+    private String adminRejectionReason;
+
+    private OffsetDateTime arrivedAt;
+    private OffsetDateTime mandorDecidedAt;
+    private OffsetDateTime adminDecidedAt;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PayrollTriggerState driverPayrollTriggerState = PayrollTriggerState.NotTriggered;
+
+    private OffsetDateTime driverPayrollTriggeredAt;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PayrollTriggerState mandorPayrollTriggerState = PayrollTriggerState.NotTriggered;
+
+    private OffsetDateTime mandorPayrollTriggeredAt;
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
     public enum Status {
-        Memuat, Mengirim, Tiba, Rejected
+        Memuat, Mengirim, Tiba
+    }
+
+    public enum MandorDecision {
+        Pending, Approved, Rejected
+    }
+
+    public enum AdminDecision {
+        Pending, Approved, Rejected, PartiallyApproved
+    }
+
+    public enum PayrollTriggerState {
+        NotTriggered, Queued, Triggered, Failed
     }
 }
