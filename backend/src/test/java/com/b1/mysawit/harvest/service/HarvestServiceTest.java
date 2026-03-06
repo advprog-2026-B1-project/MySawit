@@ -28,7 +28,6 @@ class HarvestServiceTest {
 
     @Test
     void createHarvest_ShouldThrowException_WhenBuruhAlreadyInputToday() {
-        // Arrange
         User worker = new User();
         worker.setId(1L);
         HarvestRequest request = new HarvestRequest();
@@ -37,7 +36,6 @@ class HarvestServiceTest {
         when(hasilPanenRepository.existsByWorker_IdAndTanggalPanen(eq(1L), any(LocalDate.class)))
                 .thenReturn(true);
 
-        // Act & Assert
         assertThrows(IllegalStateException.class, () -> {
             harvestService.createHarvest(worker, request);
         });

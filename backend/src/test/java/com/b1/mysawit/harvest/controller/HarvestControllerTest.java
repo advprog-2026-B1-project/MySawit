@@ -38,7 +38,7 @@ class HarvestControllerTest {
 
         String jsonPayload = "{\"kilogram\": 100, \"berita\": \"Panen blok A\"}";
 
-        mockMvc.perform(post("/api/hasil-panen")
+        mockMvc.perform(post("/api/harvest")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonPayload))
                 .andExpect(status().isOk());
@@ -48,7 +48,7 @@ class HarvestControllerTest {
     void getMyHarvests_ShouldReturn200() throws Exception {
         when(harvestService.getMyHarvestHistory(any())).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/hasil-panen/me"))
+        mockMvc.perform(get("/api/harvest/me"))
                 .andExpect(status().isOk());
     }
 }
