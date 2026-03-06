@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-// memetakan entity Delivery ke DeliveryResponse DTOs dan sebaliknya untuk API
+// Maps Delivery entities to DeliveryResponse DTOs for API responses.
 @Component
 public class DeliveryMapper {
 
