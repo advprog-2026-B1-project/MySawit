@@ -1,4 +1,4 @@
-package com.b1.mysawit.dto;
+package com.b1.mysawit.auth.dto;
 
 public record RegisterRequest(
     String username,
@@ -6,5 +6,5 @@ public record RegisterRequest(
     String nama,
     String password,
     String role,
-    String nomorSertifikasiString
+    String nomorSertifikasi
 ) {}
