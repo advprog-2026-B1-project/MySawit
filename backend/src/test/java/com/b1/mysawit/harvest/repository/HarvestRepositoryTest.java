@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-class HasilPanenRepositoryTest {
+class HarvestRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
