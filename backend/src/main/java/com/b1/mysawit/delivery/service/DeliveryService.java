@@ -13,7 +13,6 @@ import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -37,7 +36,6 @@ public class DeliveryService {
             Delivery.Status.Tiba
     );
 
-    private static final BigDecimal MAX_TRIP_KG = new BigDecimal("400");
     private static final String DELIVERY_NOT_FOUND = "Delivery not found";
     private static final String MANDOR_DELIVERY_NOT_FOUND = "Delivery not found for this mandor";
     private static final String DRIVER_DELIVERY_NOT_FOUND = "Delivery not found for this driver";
@@ -50,25 +48,32 @@ public class DeliveryService {
     private final DeliveryMapper deliveryMapper;
     private final DeliveryValidator deliveryValidator;
     private final DeliveryConstructor deliveryConstructor;
+    private final DriverTripLoadValidator driverTripLoadValidator;
+    private final DeliveryAdminDecisionHandler deliveryAdminDecisionHandler;
+    private final TimeProvider timeProvider;
 
     public DeliveryService(
             DeliveryRepository deliveryRepository,
             EntityManager entityManager,
             DeliveryMapper deliveryMapper,
             DeliveryValidator deliveryValidator,
-            DeliveryConstructor deliveryConstructor
+            DeliveryConstructor deliveryConstructor,
+            DriverTripLoadValidator driverTripLoadValidator,
+            DeliveryAdminDecisionHandler deliveryAdminDecisionHandler,
+            TimeProvider timeProvider
     ) {
         this.deliveryRepository = deliveryRepository;
         this.entityManager = entityManager;
         this.deliveryMapper = deliveryMapper;
         this.deliveryValidator = deliveryValidator;
         this.deliveryConstructor = deliveryConstructor;
+        this.driverTripLoadValidator = driverTripLoadValidator;
+        this.deliveryAdminDecisionHandler = deliveryAdminDecisionHandler;
+        this.timeProvider = timeProvider;
     }
 
     public DeliveryResponse createDelivery(Long mandorId, CreateDeliveryRequest request) {
-        if (request == null || request.driverId() == null || request.hasilPanenId() == null) {
-            throw new IllegalArgumentException("driverId and hasilPanenId are required");
-        }
+        requireCreateRequest(request);
 
         User mandor = getUserOrThrow(mandorId, MANDOR_NOT_FOUND);
         User driver = getUserOrThrow(request.driverId(), DRIVER_NOT_FOUND);
@@ -80,7 +85,7 @@ public class DeliveryService {
             throw new IllegalArgumentException("Harvest has already been assigned to a delivery");
         }
 
-        validateDriverTripCapacity(driver.getId(), hasilPanen.getKilogram());
+        driverTripLoadValidator.validateTripCapacity(driver.getId(), hasilPanen.getKilogram(), ONGOING_STATUSES);
 
         Delivery delivery = deliveryConstructor.newDelivery(mandor, driver, hasilPanen);
         return toResponse(deliveryRepository.save(delivery));
@@ -93,11 +98,12 @@ public class DeliveryService {
         Delivery.Status nextStatus = deliveryValidator.requireNextStatus(request);
         deliveryValidator.validateStatusTransition(delivery.getStatus(), nextStatus);
 
+        OffsetDateTime currentTime = now();
         delivery.setStatus(nextStatus);
         if (nextStatus == Delivery.Status.Tiba) {
-            delivery.setArrivedAt(now());
+            delivery.setArrivedAt(currentTime);
         }
-        delivery.setUpdatedAt(now());
+        delivery.setUpdatedAt(currentTime);
 
         return toResponse(deliveryRepository.save(delivery));
     }
@@ -115,8 +121,9 @@ public class DeliveryService {
             markDriverPayrollQueued(delivery);
         }
 
-        delivery.setMandorDecidedAt(now());
-        delivery.setUpdatedAt(now());
+        OffsetDateTime currentTime = now();
+        delivery.setMandorDecidedAt(currentTime);
+        delivery.setUpdatedAt(currentTime);
 
         return toResponse(deliveryRepository.save(delivery));
     }
@@ -125,16 +132,16 @@ public class DeliveryService {
         Delivery delivery = getDeliveryOrThrow(deliveryId);
         deliveryValidator.validateAdminDecisionRequest(delivery, request);
 
-        applyAdminDecision(delivery, request);
+        deliveryAdminDecisionHandler.applyDecision(delivery, request);
 
-        if (request.decision() == Delivery.AdminDecision.Approved
-                || request.decision() == Delivery.AdminDecision.PartiallyApproved) {
+        if (deliveryAdminDecisionHandler.isPayrollEligible(request.decision())) {
             markMandorPayrollQueued(delivery);
         }
 
+        OffsetDateTime currentTime = now();
         delivery.setAdminDecision(request.decision());
-        delivery.setAdminDecidedAt(now());
-        delivery.setUpdatedAt(now());
+        delivery.setAdminDecidedAt(currentTime);
+        delivery.setUpdatedAt(currentTime);
 
         return toResponse(deliveryRepository.save(delivery));
     }
@@ -229,40 +236,15 @@ public class DeliveryService {
         );
     }
 
-    private void applyAdminDecision(Delivery delivery, AdminDeliveryDecisionRequest request) {
-        if (request.decision() == Delivery.AdminDecision.Approved) {
-            delivery.setAcknowledgedKg(getHarvestKgOrThrow(delivery));
-            delivery.setAdminRejectionReason(null);
-            return;
-        }
-
-        if (request.decision() == Delivery.AdminDecision.Rejected) {
-            delivery.setAcknowledgedKg(BigDecimal.ZERO);
-            delivery.setAdminRejectionReason(request.rejectionReason());
-            return;
-        }
-
-        delivery.setAcknowledgedKg(request.acknowledgedKg());
-        delivery.setAdminRejectionReason(request.rejectionReason());
-    }
-
-    private void validateDriverTripCapacity(Long driverId, BigDecimal newHarvestKg) {
-        BigDecimal ongoingKg = deliveryRepository.sumOngoingKgByDriver(driverId, ONGOING_STATUSES);
-        if (ongoingKg == null) {
-            ongoingKg = BigDecimal.ZERO;
-        }
-
-        BigDecimal currentHarvestKg = newHarvestKg == null ? BigDecimal.ZERO : newHarvestKg;
-        BigDecimal totalKg = ongoingKg.add(currentHarvestKg);
-
-        if (totalKg.compareTo(MAX_TRIP_KG) > 0) {
-            throw new IllegalArgumentException("Total delivery load for one trip cannot exceed 400kg");
-        }
-    }
-
     private Delivery getMandorDeliveryOrThrow(Long deliveryId, Long mandorId) {
         return deliveryRepository.findByIdAndMandor_Id(deliveryId, mandorId)
                 .orElseThrow(() -> new IllegalArgumentException(MANDOR_DELIVERY_NOT_FOUND));
+    }
+
+    private void requireCreateRequest(CreateDeliveryRequest request) {
+        if (request == null || request.driverId() == null || request.hasilPanenId() == null) {
+            throw new IllegalArgumentException("driverId and hasilPanenId are required");
+        }
     }
 
     private User getUserOrThrow(Long userId, String notFoundMessage) {
@@ -290,15 +272,8 @@ public class DeliveryService {
                 .orElseThrow(() -> new IllegalArgumentException(DELIVERY_NOT_FOUND));
     }
 
-    private BigDecimal getHarvestKgOrThrow(Delivery delivery) {
-        if (delivery.getHasilPanen() == null || delivery.getHasilPanen().getKilogram() == null) {
-            throw new IllegalArgumentException("Delivery harvest kilogram is missing");
-        }
-        return delivery.getHasilPanen().getKilogram();
-    }
-
     private OffsetDateTime now() {
-        return OffsetDateTime.now();
+        return timeProvider.now();
     }
 
     private DeliveryResponse toResponse(Delivery delivery) {

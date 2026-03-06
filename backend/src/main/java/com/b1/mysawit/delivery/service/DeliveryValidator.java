@@ -9,6 +9,7 @@ import com.b1.mysawit.domain.User;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Component
 public class DeliveryValidator {
@@ -18,19 +19,24 @@ public class DeliveryValidator {
     public void validateCreateDelivery(User mandor, User driver, HasilPanen hasilPanen) {
         requireRole(mandor, User.Role.Mandor, "User is not a mandor");
         requireRole(driver, User.Role.Supir, "User is not a supir");
+        requireApprovedHarvest(hasilPanen);
+        requireValidCapacity(hasilPanen.getKilogram());
+    }
 
-        if (hasilPanen.getStatus() != HasilPanen.Status.Approved) {
+    private void requireApprovedHarvest(HasilPanen hasilPanen) {
+        if (hasilPanen == null || hasilPanen.getStatus() != HasilPanen.Status.Approved) {
             throw new IllegalArgumentException("Only approved harvest can be delivered");
         }
+    }
 
-        BigDecimal kilograms = hasilPanen.getKilogram();
+    private void requireValidCapacity(BigDecimal kilograms) {
         if (kilograms == null || kilograms.compareTo(MAX_TRUCK_CAPACITY_KG) > 0) {
             throw new IllegalArgumentException("Delivery load must be <= 400kg");
         }
     }
 
     public void validateAssignedDriver(Delivery delivery, Long driverId) {
-        if (delivery.getDriver() == null || !delivery.getDriver().getId().equals(driverId)) {
+        if (delivery.getDriver() == null || !Objects.equals(delivery.getDriver().getId(), driverId)) {
             throw new IllegalArgumentException("Driver is not assigned to this delivery");
         }
     }
@@ -73,8 +79,7 @@ public class DeliveryValidator {
             throw new IllegalArgumentException("Mandor decision has already been submitted");
         }
 
-        boolean missingReason = request.rejectionReason() == null || request.rejectionReason().isBlank();
-        if (request.decision() == Delivery.MandorDecision.Rejected && missingReason) {
+        if (request.decision() == Delivery.MandorDecision.Rejected && isBlank(request.rejectionReason())) {
             throw new IllegalArgumentException("Rejection reason is required");
         }
     }
@@ -92,8 +97,7 @@ public class DeliveryValidator {
             throw new IllegalArgumentException("Admin decision has already been submitted");
         }
 
-        boolean missingReason = request.rejectionReason() == null || request.rejectionReason().isBlank();
-        if (request.decision() == Delivery.AdminDecision.Rejected && missingReason) {
+        if (request.decision() == Delivery.AdminDecision.Rejected && isBlank(request.rejectionReason())) {
             throw new IllegalArgumentException("Admin rejection reason is required");
         }
 
@@ -115,9 +119,13 @@ public class DeliveryValidator {
             throw new IllegalArgumentException("Acknowledged kilogram cannot exceed delivered kilogram");
         }
 
-        if (request.rejectionReason() == null || request.rejectionReason().isBlank()) {
+        if (isBlank(request.rejectionReason())) {
             throw new IllegalArgumentException("Rejection reason is required for partial approval");
         }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     private void requireRole(User user, User.Role requiredRole, String message) {

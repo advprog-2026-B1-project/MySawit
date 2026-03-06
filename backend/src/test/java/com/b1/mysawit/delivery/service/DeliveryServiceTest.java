@@ -46,7 +46,10 @@ class DeliveryServiceTest {
                 entityManager,
                 new DeliveryMapper(),
                 new DeliveryValidator(),
-                new DeliveryConstructor()
+            new DeliveryConstructor(),
+            new DriverTripLoadValidator(deliveryRepository),
+            new DeliveryAdminDecisionHandler(),
+            new SystemTimeProvider()
         );
     }
 
