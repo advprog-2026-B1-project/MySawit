@@ -24,5 +24,5 @@ public class WorkerAssignment {
     private User mandor;
 
     private OffsetDateTime assignedAt;
-    private OffsetDateTime unassignedAt; // test
+    private OffsetDateTime unassignedAt;
 }
