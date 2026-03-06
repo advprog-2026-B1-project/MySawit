@@ -147,11 +147,6 @@ public class DeliveryService {
     }
 
     @Transactional(readOnly = true)
-    public List<DeliveryResponse> getAll() {
-        return toResponseList(deliveryRepository.findAll());
-    }
-
-    @Transactional(readOnly = true)
     public List<DeliveryResponse> getByDriver(Long driverId) {
         return toResponseList(deliveryRepository.findByDriver(driverId));
     }
