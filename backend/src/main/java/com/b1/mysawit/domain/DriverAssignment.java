@@ -8,23 +8,30 @@ import java.time.OffsetDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
+@Table(name = "driver_assignment")
 public class DriverAssignment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "driver_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User driver;
 
-    @ManyToOne
-    @JoinColumn(name = "kebun_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "kebun_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Kebun kebun;
 
+    @Column(name = "assigned_at")
     private OffsetDateTime assignedAt;
-    private OffsetDateTime unassignedAt;
 
-    // getters & setters
+    @Column(name = "unassigned_at")
+    private OffsetDateTime unassignedAt;
 }
