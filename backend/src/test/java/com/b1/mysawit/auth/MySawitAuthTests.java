@@ -1,32 +1,106 @@
 package com.b1.mysawit.auth;
 
 import com.b1.mysawit.auth.controller.AppController;
-// import com.b1.mysawit.domain.User;
-// import com.b1.mysawit.auth.dto.LoginRequest;
 import com.b1.mysawit.auth.service.AuthService;
 import com.b1.mysawit.auth.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.b1.mysawit.domain.User;
+import com.b1.mysawit.auth.config.SecurityConfig; 
+import org.springframework.context.annotation.Import;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AppController.class)
+@WebMvcTest(controllers = AppController.class)
+@Import(SecurityConfig.class)
 public class MySawitAuthTests {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
+
+    @Test
+    void testRegisterSuccess() throws Exception {
+        User mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("buruh1");
+        mockUser.setRole(User.Role.Buruh);
+        
+        when(authService.register(any())).thenReturn(mockUser);
+
+        String requestJson = """
+            {
+                "nama": "Budi Buruh",
+                "username": "buruh1",
+                "email": "budi@mysawit.com",
+                "password": "password123",
+                "role": "Buruh"
+            }
+            """;
+        
+        mockMvc.perform(post("/api/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testAdminUpdateUser() throws Exception {
+        User updatedUser = new User();
+        updatedUser.setId(2L);
+        updatedUser.setUsername("buruh_updated");
+        
+        // Mock service agar selalu mengembalikan updatedUser saat dipanggil dengan ID 2
+        when(userService.updateUser(eq(2L), any())).thenReturn(updatedUser);
+
+        String updateJson = """
+            {
+                "nama": "Budi Buruh Updated",
+                "username": "buruh_updated",
+                "email": "budi.baru@mysawit.com",
+                "password": "passwordbaru",
+                "role": "Buruh"
+            }
+            """;
+
+        mockMvc.perform(put("/api/admin/users/2")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testAssignWorkerToMandor() throws Exception {
+        // Asumsikan UserService.assignWorkerToMandor mengembalikan object WorkerAssignment atau void
+        
+        String assignJson = """
+            {
+                "workerId": 10,
+                "mandorId": 5
+            }
+            """;
+
+        mockMvc.perform(post("/api/admin/assign")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(assignJson))
+                .andExpect(status().isOk());
+    }
 
     @Test
     public void testLoginSuccess() throws Exception {
