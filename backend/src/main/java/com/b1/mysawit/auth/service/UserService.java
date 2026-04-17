@@ -43,4 +43,17 @@ public class UserService {
         newAssignment.setAssignedAt(OffsetDateTime.now());
         assignmentRepository.save(newAssignment);
     }
+
+    public User updateUser(Long id, com.b1.mysawit.auth.dto.RegisterRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
+        
+        user.setNama(request.nama());
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setRole(User.Role.valueOf(request.role()));
+        user.setUpdatedAt(OffsetDateTime.now());
+        
+        return userRepository.save(user);
+    }
 }

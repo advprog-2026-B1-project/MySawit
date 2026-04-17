@@ -16,6 +16,26 @@ public class AppController {
     @Autowired
     private UserService userService;
 
+    // EXCEPTION HANDLER
+    // Menangkap exception agar test "Admin Cannot Delete Themself" menghasilkan 400 Bad Request
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    // ADMIN CRUD TAMBAHAN
+    // Admin membuat user baru bisa langsung memanfaatkan fungsi register
+    @PostMapping("/admin/users")
+    public ResponseEntity<?> createUserByAdmin(@RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authService.register(request));
+    }
+
+    // Admin mengubah data user
+    @PutMapping("/admin/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(userService.updateUser(id, request));
+    }
+
     // --- AUTHENTICATION ---
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
