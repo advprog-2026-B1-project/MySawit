@@ -25,6 +25,7 @@ class SupabaseServiceTest {
     private SupabaseService supabaseService;
 
     @Test
+    @SuppressWarnings("unchecked")
     void uploadPhoto_shouldReturnPublicUrl() throws Exception {
         // Arrange
         String supabaseUrl = "https://xyz.supabase.co";
@@ -96,6 +97,7 @@ class SupabaseServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void uploadPhoto_shouldThrowWebClientException() throws Exception {
 
         MultipartFile file = mock(MultipartFile.class);
