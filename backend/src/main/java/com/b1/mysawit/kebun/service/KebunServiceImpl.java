@@ -24,23 +24,29 @@ public class KebunServiceImpl implements KebunService {
     private final MandorAssignmentRepository mandorAssignmentRepository;
     private final KebunValidator kebunValidator;
     private final KebunMapper kebunMapper;
+    private final KebunOverlapValidator kebunOverlapValidator;
 
     public KebunServiceImpl(
             KebunRepository kebunRepository,
             MandorAssignmentRepository mandorAssignmentRepository,
             KebunValidator kebunValidator,
-            KebunMapper kebunMapper) {
+            KebunMapper kebunMapper,
+            KebunOverlapValidator kebunOverlapValidator) {
         this.kebunRepository = kebunRepository;
         this.mandorAssignmentRepository = mandorAssignmentRepository;
         this.kebunValidator = kebunValidator;
         this.kebunMapper = kebunMapper;
+        this.kebunOverlapValidator = kebunOverlapValidator;
     }
 
     @Override
     public KebunResponse createKebun(KebunCreateRequest request) {
         kebunValidator.validateCreateRequest(request);
         checkKodeKebunNotDuplicate(request.getKodeKebun());
-
+        kebunOverlapValidator.validateNoOverlap(
+                request.getKoordinat(),
+                kebunRepository.findAllKoordinat()
+        );
         Kebun kebun = kebunMapper.toEntity(request);
         Kebun saved = kebunRepository.save(kebun);
         return kebunMapper.toResponse(saved);
@@ -65,6 +71,13 @@ public class KebunServiceImpl implements KebunService {
     public KebunResponse updateKebun(Long id, KebunUpdateRequest request) {
         kebunValidator.validateUpdateRequest(request);
         Kebun kebun = findKebunOrThrow(id);
+        // Cek overlap hanya jika koordinat memang diubah
+        if (request.getKoordinat() != null) {
+            kebunOverlapValidator.validateNoOverlap(
+                    request.getKoordinat(),
+                    kebunRepository.findAllKoordinatExcluding(id)
+            );
+        }
         applyUpdates(kebun, request);
         kebun.setUpdatedAt(OffsetDateTime.now());
         Kebun updated = kebunRepository.save(kebun);
@@ -105,7 +118,7 @@ public class KebunServiceImpl implements KebunService {
     }
 
     private void applyUpdates(Kebun kebun, KebunUpdateRequest request) {
-        // kodeKebun tidak bisa diubah — sesuai spesifikasi
+        // kodeKebun tidak dapat diubah — field ini tidak ada di KebunUpdateRequest
         if (kebunValidator.hasValue(request.getNamaKebun())) {
             kebun.setNamaKebun(request.getNamaKebun().trim());
         }
@@ -123,4 +136,3 @@ public class KebunServiceImpl implements KebunService {
         }
     }
 }
-
