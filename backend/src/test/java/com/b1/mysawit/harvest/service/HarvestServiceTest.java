@@ -7,7 +7,6 @@ import com.b1.mysawit.harvest.dto.HarvestRequest;
 import com.b1.mysawit.harvest.dto.HarvestResponse;
 import com.b1.mysawit.repository.FotoHasilPanenRepository;
 import com.b1.mysawit.repository.HasilPanenRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
