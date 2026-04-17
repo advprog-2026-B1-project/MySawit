@@ -84,7 +84,6 @@ class HarvestControllerTest {
                 .rejectionReason("Foto kurang jelas")
                 .build();
 
-        // Request Body untuk Reject
         var rejectRequest = Collections.singletonMap("alasan", "Foto kurang jelas");
 
         when(harvestService.rejectHarvest(eq(1L), anyString())).thenReturn(response);

@@ -31,7 +31,6 @@ public class SupabaseService {
         try {
             WebClient webClient = WebClient.create(supabaseUrl);
 
-            // 3. Eksekusi Upload
             webClient.post()
                     .uri(endpoint)
                     .header("Authorization", "Bearer " + supabaseKey)

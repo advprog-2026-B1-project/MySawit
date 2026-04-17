@@ -26,10 +26,7 @@ class SupabaseServiceTest {
 
     @Test
     void uploadPhoto_shouldReturnPublicUrl() throws Exception {
-
-        // =====================
         // Arrange
-        // =====================
         String supabaseUrl = "https://xyz.supabase.co";
         String bucket = "hasil-panen-photos";
         String fileName = "test.jpg";
@@ -65,14 +62,10 @@ class SupabaseServiceTest {
             when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
             when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just("ok"));
 
-            // =====================
             // Act
-            // =====================
             String result = supabaseService.uploadPhoto(file);
 
-            // =====================
             // Assert
-            // =====================
             assertNotNull(result);
             assertTrue(result.contains(supabaseUrl));
             assertTrue(result.contains(bucket));
