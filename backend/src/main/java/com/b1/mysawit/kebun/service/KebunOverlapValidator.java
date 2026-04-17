@@ -120,13 +120,21 @@ public class KebunOverlapValidator {
 
             for (double[] p : source) {
                 double proj = p[0] * nx + p[1] * ny;
-                if (proj < min1) min1 = proj;
-                if (proj > max1) max1 = proj;
+                if (proj < min1) {
+                    min1 = proj;
+                }
+                if (proj > max1) {
+                    max1 = proj;
+                }
             }
             for (double[] p : target) {
                 double proj = p[0] * nx + p[1] * ny;
-                if (proj < min2) min2 = proj;
-                if (proj > max2) max2 = proj;
+                if (proj < min2) {
+                    min2 = proj;
+                }
+                if (proj > max2) {
+                    max2 = proj;
+                }
             }
 
             // Strict inequality: menyentuh di tepian (max1 == min2) dianggap TIDAK overlap
