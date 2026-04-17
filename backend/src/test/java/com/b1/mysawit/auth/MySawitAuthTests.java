@@ -1,8 +1,8 @@
 package com.b1.mysawit.auth;
 
 import com.b1.mysawit.auth.controller.AppController;
-import com.b1.mysawit.domain.User;
-import com.b1.mysawit.dto.LoginRequest;
+// import com.b1.mysawit.domain.User;
+// import com.b1.mysawit.auth.dto.LoginRequest;
 import com.b1.mysawit.auth.service.AuthService;
 import com.b1.mysawit.auth.service.UserService;
 import org.junit.jupiter.api.Test;

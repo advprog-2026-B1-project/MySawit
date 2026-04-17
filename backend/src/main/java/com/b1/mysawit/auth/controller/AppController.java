@@ -25,7 +25,9 @@ public class AppController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         boolean isValid = authService.login(request.email(), request.password());
-        if (isValid) return ResponseEntity.ok("Login Successful");
+        if (isValid) {
+            return ResponseEntity.ok("Login Successful");
+        }
         return ResponseEntity.status(401).body("Invalid credentials");
     }
 

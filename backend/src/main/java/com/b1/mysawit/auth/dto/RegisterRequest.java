@@ -7,4 +7,6 @@ public record RegisterRequest(
     String password,
     String role,
     String nomorSertifikasi
-) {}
+) { 
+    
+}

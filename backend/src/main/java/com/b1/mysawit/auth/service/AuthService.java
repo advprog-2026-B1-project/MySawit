@@ -8,20 +8,25 @@ import com.b1.mysawit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class AuthService {
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private MandorDetailRepository mandorDetailRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public User register(RegisterRequest request) {
         User user = new User();
         user.setUsername(request.username());
         user.setEmail(request.email());
         user.setNama(request.nama());
-        user.setPasswordHash(request.password()); //TODO: hash password
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(User.Role.valueOf(request.role()));
         user.setCreatedAt(OffsetDateTime.now());
         user.setUpdatedAt(OffsetDateTime.now());
@@ -40,7 +45,7 @@ public class AuthService {
 
     public boolean login(String email, String password) {
         return userRepository.findByEmail(email)
-                .map(user -> user.getPasswordHash().equals(password)) //TODO: pake passwrod encoder matches()
+                .map(user -> passwordEncoder.matches(password, user.getPasswordHash())) // UPDATE BAGIAN INI
                 .orElse(false);
     }
 }
