@@ -14,3 +14,4 @@ public class HarvestResponse {
     private String berita;
     private String status;
 }
+
