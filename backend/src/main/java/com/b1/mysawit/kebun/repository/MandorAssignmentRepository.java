@@ -4,6 +4,8 @@ import com.b1.mysawit.domain.MandorAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface MandorAssignmentRepository extends JpaRepository<MandorAssignment, Long> {
 
@@ -12,4 +14,8 @@ public interface MandorAssignmentRepository extends JpaRepository<MandorAssignme
      * Digunakan untuk validasi sebelum menghapus kebun.
      */
     boolean existsByKebunIdAndUnassignedAtIsNull(Long kebunId);
+
+    boolean existsByMandorIdAndUnassignedAtIsNull(Long mandorId);
+
+    Optional<MandorAssignment> findByMandorIdAndKebunIdAndUnassignedAtIsNull(Long mandorId, Long kebunId);
 }

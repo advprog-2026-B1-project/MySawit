@@ -1,13 +1,18 @@
 package com.b1.mysawit.kebun.service;
 
+import com.b1.mysawit.auth.facade.UserFacade;
 import com.b1.mysawit.common.exception.BusinessRuleViolationException;
 import com.b1.mysawit.common.exception.DuplicateResourceException;
 import com.b1.mysawit.common.exception.ResourceNotFoundException;
+import com.b1.mysawit.domain.DriverAssignment;
 import com.b1.mysawit.domain.Kebun;
+import com.b1.mysawit.domain.MandorAssignment;
+import com.b1.mysawit.domain.User;
 import com.b1.mysawit.kebun.dto.KebunCreateRequest;
 import com.b1.mysawit.kebun.dto.KebunKoordinatProjection;
 import com.b1.mysawit.kebun.dto.KebunResponse;
 import com.b1.mysawit.kebun.dto.KebunUpdateRequest;
+import com.b1.mysawit.kebun.repository.DriverAssignmentRepository;
 import com.b1.mysawit.kebun.repository.KebunRepository;
 import com.b1.mysawit.kebun.repository.MandorAssignmentRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,9 +20,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.transaction.annotation.Transactional;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -36,6 +44,12 @@ class KebunServiceImplTest {
 
     @Mock
     private MandorAssignmentRepository mandorAssignmentRepository;
+
+        @Mock
+        private DriverAssignmentRepository driverAssignmentRepository;
+
+        @Mock
+        private UserFacade userFacade;
 
     // Plain components — di-instantiate langsung, tidak perlu di-mock
     private KebunValidator kebunValidator;
@@ -69,9 +83,11 @@ class KebunServiceImplTest {
         kebunService = new KebunServiceImpl(
                 kebunRepository,
                 mandorAssignmentRepository,
+                driverAssignmentRepository,
                 kebunValidator,
                 kebunMapper,
-                kebunOverlapValidator
+                kebunOverlapValidator,
+                userFacade
         );
         kebunSample = Kebun.builder()
                 .id(1L)
@@ -479,6 +495,217 @@ class KebunServiceImplTest {
     }
 
     // ─── DELETE ──────────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("assignMandor()")
+    class AssignMandor {
+
+        @Test
+        @DisplayName("Given mandor valid dan belum aktif → should assign successfully")
+        void givenValidMandor_shouldAssignSuccessfully() {
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(mandorAssignmentRepository.existsByMandorIdAndUnassignedAtIsNull(20L)).thenReturn(false);
+
+            assertThatCode(() -> kebunService.assignMandor(20L, 1L)).doesNotThrowAnyException();
+
+            verify(userFacade).validateMandorExists(20L);
+            ArgumentCaptor<MandorAssignment> captor = ArgumentCaptor.forClass(MandorAssignment.class);
+            verify(mandorAssignmentRepository).save(captor.capture());
+            MandorAssignment saved = captor.getValue();
+            assertThat(saved.getMandor().getId()).isEqualTo(20L);
+            assertThat(saved.getKebun().getId()).isEqualTo(1L);
+            assertThat(saved.getUnassignedAt()).isNull();
+            assertThat(saved.getAssignedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Given mandor masih aktif di kebun lain → should throw BusinessRuleViolationException")
+        void givenMandorStillActive_shouldThrowBusinessRuleViolationException() {
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(mandorAssignmentRepository.existsByMandorIdAndUnassignedAtIsNull(20L)).thenReturn(true);
+
+            assertThatThrownBy(() -> kebunService.assignMandor(20L, 1L))
+                    .isInstanceOf(BusinessRuleViolationException.class)
+                    .hasMessageContaining("masih aktif");
+
+            verify(mandorAssignmentRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Given role invalid dari UserFacade → should propagate exception")
+        void givenInvalidRole_shouldPropagateException() {
+            doThrow(new BusinessRuleViolationException("role invalid"))
+                    .when(userFacade).validateMandorExists(20L);
+
+            assertThatThrownBy(() -> kebunService.assignMandor(20L, 1L))
+                    .isInstanceOf(BusinessRuleViolationException.class);
+
+            verify(kebunRepository, never()).findById(anyLong());
+            verify(mandorAssignmentRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("assignSupir()")
+    class AssignSupir {
+
+        @Test
+        @DisplayName("Given supir valid dan belum aktif → should assign successfully")
+        void givenValidSupir_shouldAssignSuccessfully() {
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(driverAssignmentRepository.existsByDriverIdAndUnassignedAtIsNull(30L)).thenReturn(false);
+
+            assertThatCode(() -> kebunService.assignSupir(30L, 1L)).doesNotThrowAnyException();
+
+            verify(userFacade).validateSupirExists(30L);
+            ArgumentCaptor<DriverAssignment> captor = ArgumentCaptor.forClass(DriverAssignment.class);
+            verify(driverAssignmentRepository).save(captor.capture());
+            DriverAssignment saved = captor.getValue();
+            assertThat(saved.getDriver().getId()).isEqualTo(30L);
+            assertThat(saved.getKebun().getId()).isEqualTo(1L);
+            assertThat(saved.getUnassignedAt()).isNull();
+            assertThat(saved.getAssignedAt()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("reassignMandor()")
+    class ReassignMandor {
+
+        @Test
+        @DisplayName("Given valid old/new kebun → should unassign then assign in one flow")
+        void givenValidReassign_shouldUnassignAndAssign() {
+            Kebun newKebun = Kebun.builder()
+                    .id(2L)
+                    .kodeKebun("KB002")
+                    .namaKebun("Kebun Sawit B")
+                    .luasHektare(new BigDecimal("20.0"))
+                    .koordinat(KOORDINAT_FAR)
+                    .createdAt(OffsetDateTime.now())
+                    .updatedAt(OffsetDateTime.now())
+                    .build();
+
+            User mandorRef = new User();
+            mandorRef.setId(20L);
+            MandorAssignment oldActive = MandorAssignment.builder()
+                    .id(10L)
+                    .mandor(mandorRef)
+                    .kebun(kebunSample)
+                    .assignedAt(OffsetDateTime.now().minusDays(1))
+                    .unassignedAt(null)
+                    .build();
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(kebunRepository.findById(2L)).thenReturn(Optional.of(newKebun));
+            when(mandorAssignmentRepository.findByMandorIdAndKebunIdAndUnassignedAtIsNull(20L, 1L))
+                    .thenReturn(Optional.of(oldActive));
+            when(mandorAssignmentRepository.existsByMandorIdAndUnassignedAtIsNull(20L)).thenReturn(false);
+
+            assertThatCode(() -> kebunService.reassignMandor(20L, 1L, 2L)).doesNotThrowAnyException();
+
+            verify(userFacade).validateMandorExists(20L);
+            ArgumentCaptor<MandorAssignment> captor = ArgumentCaptor.forClass(MandorAssignment.class);
+            verify(mandorAssignmentRepository, times(2)).save(captor.capture());
+            List<MandorAssignment> saved = captor.getAllValues();
+
+            assertThat(saved.get(0).getUnassignedAt()).isNotNull();
+            assertThat(saved.get(1).getUnassignedAt()).isNull();
+            assertThat(saved.get(1).getMandor().getId()).isEqualTo(20L);
+            assertThat(saved.get(1).getKebun().getId()).isEqualTo(2L);
+        }
+
+        @Test
+        @DisplayName("Given old/new kebun sama → should throw IllegalArgumentException")
+        void givenSameOldAndNewKebun_shouldThrowIllegalArgumentException() {
+            assertThatThrownBy(() -> kebunService.reassignMandor(20L, 1L, 1L))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("harus berbeda");
+
+            verifyNoInteractions(userFacade, mandorAssignmentRepository);
+        }
+
+        @Test
+        @DisplayName("Given tidak ada assignment aktif di kebun lama → should throw BusinessRuleViolationException")
+        void givenNoActiveAssignmentInOldKebun_shouldThrowBusinessRuleViolationException() {
+            Kebun newKebun = Kebun.builder()
+                    .id(2L)
+                    .kodeKebun("KB002")
+                    .namaKebun("Kebun Sawit B")
+                    .luasHektare(new BigDecimal("20.0"))
+                    .koordinat(KOORDINAT_FAR)
+                    .createdAt(OffsetDateTime.now())
+                    .updatedAt(OffsetDateTime.now())
+                    .build();
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(kebunRepository.findById(2L)).thenReturn(Optional.of(newKebun));
+            when(mandorAssignmentRepository.findByMandorIdAndKebunIdAndUnassignedAtIsNull(20L, 1L))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> kebunService.reassignMandor(20L, 1L, 2L))
+                    .isInstanceOf(BusinessRuleViolationException.class)
+                    .hasMessageContaining("kebun lama");
+
+            verify(mandorAssignmentRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("reassignSupir()")
+    class ReassignSupir {
+
+        @Test
+        @DisplayName("Given valid reassign supir → should validate UserFacade and persist changes")
+        void givenValidReassignSupir_shouldValidateAndPersist() {
+            Kebun newKebun = Kebun.builder()
+                    .id(3L)
+                    .kodeKebun("KB003")
+                    .namaKebun("Kebun Sawit C")
+                    .luasHektare(new BigDecimal("30.0"))
+                    .koordinat("[(700,0),(800,0),(800,100),(700,100)]")
+                    .createdAt(OffsetDateTime.now())
+                    .updatedAt(OffsetDateTime.now())
+                    .build();
+
+            User driverRef = new User();
+            driverRef.setId(30L);
+            DriverAssignment oldActive = DriverAssignment.builder()
+                    .id(11L)
+                    .driver(driverRef)
+                    .kebun(kebunSample)
+                    .assignedAt(OffsetDateTime.now().minusDays(1))
+                    .unassignedAt(null)
+                    .build();
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(kebunRepository.findById(3L)).thenReturn(Optional.of(newKebun));
+            when(driverAssignmentRepository.findByDriverIdAndKebunIdAndUnassignedAtIsNull(30L, 1L))
+                    .thenReturn(Optional.of(oldActive));
+            when(driverAssignmentRepository.existsByDriverIdAndUnassignedAtIsNull(30L)).thenReturn(false);
+
+            assertThatCode(() -> kebunService.reassignSupir(30L, 1L, 3L)).doesNotThrowAnyException();
+
+            verify(userFacade).validateSupirExists(30L);
+            verify(driverAssignmentRepository, times(2)).save(any(DriverAssignment.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("transaction annotation")
+    class TransactionAnnotation {
+
+        @Test
+        @DisplayName("reassign methods should be explicitly @Transactional")
+        void reassignMethodsShouldBeExplicitlyTransactional() throws NoSuchMethodException {
+            Method reassignMandorMethod = KebunServiceImpl.class.getMethod(
+                    "reassignMandor", Long.class, Long.class, Long.class);
+            Method reassignSupirMethod = KebunServiceImpl.class.getMethod(
+                    "reassignSupir", Long.class, Long.class, Long.class);
+
+            assertThat(reassignMandorMethod.getAnnotation(Transactional.class)).isNotNull();
+            assertThat(reassignSupirMethod.getAnnotation(Transactional.class)).isNotNull();
+        }
+    }
 
     @Nested
     @DisplayName("deleteKebun()")

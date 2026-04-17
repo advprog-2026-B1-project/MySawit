@@ -17,4 +17,12 @@ public interface KebunService {
     KebunResponse updateKebun(Long id, KebunUpdateRequest request);
 
     void deleteKebun(Long id);
+
+    void assignMandor(Long mandorId, Long kebunId);
+
+    void assignSupir(Long supirId, Long kebunId);
+
+    void reassignMandor(Long mandorId, Long oldKebunId, Long newKebunId);
+
+    void reassignSupir(Long supirId, Long oldKebunId, Long newKebunId);
 }
