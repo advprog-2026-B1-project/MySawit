@@ -87,12 +87,19 @@ public class HarvestService {
     }
 
     private HarvestResponse mapToResponse(HasilPanen panen) {
+        List<String> urls = fotoHasilPanenRepository.findAllByHasilPanen_Id(panen.getId())
+                .stream()
+                .map(FotoHasilPanen::getUrl)
+                .collect(Collectors.toList());
+
         return HarvestResponse.builder()
                 .id(panen.getId())
                 .tanggalPanen(panen.getTanggalPanen())
                 .kilogram(panen.getKilogram())
                 .berita(panen.getBerita())
                 .status(panen.getStatus().name())
+                .rejectionReason(panen.getRejectionReason())
+                .fotoUrls(urls)
                 .build();
     }
 }
