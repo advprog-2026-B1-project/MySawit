@@ -25,8 +25,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
-        // jika user belum ada di database MySawit, otomatis didaftarkan
-        userRepository.findByEmail(email).orElseGet(() -> {
+        if (userRepository.findByEmail(email).isEmpty()) {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setNama(name);
@@ -36,8 +35,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             newUser.setRole(User.Role.Buruh); 
             newUser.setCreatedAt(OffsetDateTime.now());
             
-            return userRepository.save(newUser);
-        });
+            userRepository.save(newUser);
+        }
 
         return oAuth2User;
     }
