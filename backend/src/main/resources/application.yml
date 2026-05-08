@@ -11,6 +11,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: dummy-id
+            client-secret: dummy-secret
+            scope: email, profile
+
 supabase:
   url: ${SUPABASE_URL}
   key: ${SUPABASE_KEY}

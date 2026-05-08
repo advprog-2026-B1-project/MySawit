@@ -5,10 +5,17 @@ import com.b1.mysawit.harvest.dto.HarvestRequest;
 import com.b1.mysawit.harvest.dto.HarvestResponse;
 import com.b1.mysawit.harvest.dto.RejectRequest;
 import com.b1.mysawit.harvest.service.HarvestService;
+import com.b1.mysawit.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 
 import java.util.List;
 
@@ -19,11 +26,44 @@ import java.util.List;
 public class HarvestController {
 
     private final HarvestService harvestService;
+    private final UserRepository userRepository;
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("Authentication required");
+        }
+
+        Object principal = authentication.getPrincipal();
+        String email = null;
+
+        if (principal instanceof OAuth2User) {
+            email = ((OAuth2User) principal).getAttribute("email");
+        }
+        else if (principal instanceof org.springframework.security.core.userdetails.User) {
+            email = ((org.springframework.security.core.userdetails.User) principal).getUsername();
+        }
+        else if (principal instanceof String) {
+            email = (String) principal;
+        }
+
+        if (email == null) {
+            throw new IllegalStateException("Could not extract email from authentication context");
+        }
+
+        return userRepository.findByEmail(email).orElseThrow(() -> new IllegalStateException("User not found in database"));
+    }
+
+    private boolean validateUserMandor(User user) {
+        if (user.getRole() == User.Role.Mandor) {
+            return true;
+        }
+        return false;
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<HarvestResponse> submitHarvest(@ModelAttribute HarvestRequest request) {
-        User currentUser = new User(); // Dummy
-        currentUser.setId(2L);
+        User currentUser = getCurrentUser();
 
         HarvestResponse response = harvestService.createHarvest(currentUser, request);
         return ResponseEntity.ok(response);
@@ -31,20 +71,44 @@ public class HarvestController {
 
     @PutMapping("/{id}/approve")
     public ResponseEntity<HarvestResponse> approveHarvest(@PathVariable Long id) {
-        return ResponseEntity.ok(harvestService.approveHarvest(id));
+        User currentUser = getCurrentUser();
+        if (validateUserMandor(currentUser)) {
+            return ResponseEntity.ok(harvestService.approveHarvest(id,  currentUser));
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PutMapping("/{id}/reject")
     public ResponseEntity<HarvestResponse> rejectHarvest(@PathVariable Long id, @RequestBody RejectRequest request) {
-        return ResponseEntity.ok(harvestService.rejectHarvest(id, request.getAlasan()));
+        User currentUser = getCurrentUser();
+        if (validateUserMandor(currentUser)) {
+            return ResponseEntity.ok(harvestService.rejectHarvest(id, request.getAlasan(), currentUser));
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<HarvestResponse>> getMyHarvests() {
-        User currentUser = new User(); // Dummy
-        currentUser.setId(2L);
+    public ResponseEntity<List<HarvestResponse>> getMyHarvests(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String status
+    ) {
+        User currentUser = getCurrentUser();
 
-        List<HarvestResponse> history = harvestService.getMyHarvestHistory(currentUser);
+        List<HarvestResponse> history = harvestService.getMyHarvestHistory(currentUser, startDate, endDate, status);
+        return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/mandor")
+    public ResponseEntity<List<HarvestResponse>> getHarvestsForMandor(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String searchNama) {
+
+        User currentUser = getCurrentUser();
+
+        List<HarvestResponse> history = harvestService.getMandorHarvestHistory(currentUser, startDate, endDate, status, searchNama);
         return ResponseEntity.ok(history);
     }
 }
