@@ -1,22 +1,26 @@
 package com.b1.mysawit.auth;
 
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.b1.mysawit.auth.service.UserService;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.domain.WorkerAssignment;
 import com.b1.mysawit.repository.UserRepository;
 import com.b1.mysawit.repository.WorkerAssignmentRepository;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -55,13 +59,11 @@ class UserServiceTest {
 
     @Test
     void testDeleteUser_Success() {
-        User userToDelete = new User(); 
-        userToDelete.setId(2L);
-        when(userRepository.findById(2L)).thenReturn(Optional.of(userToDelete));
+        lenient().when(userRepository.findById(anyLong())).thenReturn(Optional.of(new User()));
 
-        userService.deleteUser(1L, 2L); 
+        userService.deleteUser(2L, 1L); 
         
-        verify(userRepository, times(1)).delete(any(User.class));
+        verify(userRepository, times(1)).deleteById(2L);
     }
 
     @Test
