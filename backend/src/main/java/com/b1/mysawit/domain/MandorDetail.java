@@ -20,4 +20,28 @@ public class MandorDetail {
     private User mandor;
 
     // getters & setters
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getNomorSertifikasi() {
+        return nomorSertifikasi;
+    }
+
+    public void setNomorSertifikasi(String nomorSertifikasi) {
+        this.nomorSertifikasi = nomorSertifikasi;
+    }
+
+    public User getMandor() {
+        return mandor;
+    }
+
+    public void setMandor(User mandor) {
+        this.mandor = mandor;
+    }
 }

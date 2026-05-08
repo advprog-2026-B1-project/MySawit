@@ -23,7 +23,7 @@ public class HarvestController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<HarvestResponse> submitHarvest(@ModelAttribute HarvestRequest request) {
         User currentUser = new User(); // Dummy
-        currentUser.setId(1L);
+        currentUser.setId(2L);
 
         HarvestResponse response = harvestService.createHarvest(currentUser, request);
         return ResponseEntity.ok(response);
@@ -42,7 +42,7 @@ public class HarvestController {
     @GetMapping("/me")
     public ResponseEntity<List<HarvestResponse>> getMyHarvests() {
         User currentUser = new User(); // Dummy
-        currentUser.setId(1L);
+        currentUser.setId(2L);
 
         List<HarvestResponse> history = harvestService.getMyHarvestHistory(currentUser);
         return ResponseEntity.ok(history);

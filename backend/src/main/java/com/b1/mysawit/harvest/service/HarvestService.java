@@ -29,12 +29,16 @@ public class HarvestService {
     public HarvestResponse createHarvest(User currentWorker, HarvestRequest request) {
         LocalDate today = LocalDate.now();
 
-        if (hasilPanenRepository.existsByWorker_IdAndTanggalPanen(currentWorker.getId(), today)) {
-            throw new IllegalStateException("Buruh hanya dapat melaporkan hasil sekali sehari");
+        boolean nonValidPhoto =  request.getPhotos() == null ||
+                                 request.getPhotos().isEmpty() ||
+                                 request.getPhotos().get(0).isEmpty();
+
+        if (nonValidPhoto) {
+            throw new IllegalArgumentException("Minimal 1 foto harus diupload sebagai bukti panen");
         }
 
-        if (request.getPhotos() == null || request.getPhotos().isEmpty()) {
-            throw new IllegalArgumentException("Minimal 1 foto harus diupload sebagai bukti panen");
+        if (hasilPanenRepository.existsByWorker_IdAndTanggalPanen(currentWorker.getId(), today)) {
+            throw new IllegalStateException("Buruh hanya dapat melaporkan hasil sekali sehari");
         }
 
         HasilPanen hasilPanen = new HasilPanen();
