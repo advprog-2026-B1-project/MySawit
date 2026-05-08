@@ -48,9 +48,36 @@ class UserServiceTest {
     @Test
     void testAssignWorkerToMandor_UserNotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThrows(NoSuchElementException.class, () -> {
+        Exception e = assertThrows(NoSuchElementException.class, () -> {
             userService.assignWorkerToMandor(99L, 2L);
         });
     }
+
+    @Test
+    void testDeleteUser_Success() {
+        User userToDelete = new User(); 
+        userToDelete.setId(2L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(userToDelete));
+
+        userService.deleteUser(1L, 2L); 
+        
+        verify(userRepository, times(1)).delete(any(User.class));
+    }
+
+    @Test
+    void testDeleteUser_Failed_CannotDeleteSelf() {
+        Exception e = assertThrows(IllegalArgumentException.class, () -> {
+            userService.deleteUser(1L, 1L); 
+        });
+    }
+
+    // // Test Get User Detail 
+    // @Test
+    // void testGetUserDetail_NotFound() {
+    //     when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+    //     assertThrows(NoSuchElementException.class, () -> {
+    //         userService.getUserDetail(99L);
+    //     });
+    // }
 }
