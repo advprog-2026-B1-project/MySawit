@@ -21,7 +21,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        // ambil data penting dari Google
+        return processOAuth2User(oAuth2User);
+    }
+
+    public OAuth2User processOAuth2User(OAuth2User oAuth2User) {
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
@@ -29,7 +32,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setNama(name);
-            newUser.setUsername(email.split("@")[0]); // generate username dari email
+            newUser.setUsername(email.split("@")[0]); 
             
             // set default role ke buruh, admin bisa ganti
             newUser.setRole(User.Role.Buruh); 
