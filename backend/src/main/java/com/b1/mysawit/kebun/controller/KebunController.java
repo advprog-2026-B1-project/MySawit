@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/kebun")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAuthority('Admin')")
 public class KebunController {
 
     private final KebunService kebunService;
