@@ -9,6 +9,10 @@ on:
 jobs:
   build-and-analyze:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./backend
     
     services:
       postgres:
@@ -51,6 +55,7 @@ jobs:
         run: ./gradlew clean build check --configuration-cache
 
       - name: SonarCloud Analysis
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'pull_request' && github.base_ref == 'staging') }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
