@@ -14,8 +14,7 @@ import org.springframework.test.context.TestPropertySource;
         "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "supabase.url=http://localhost:54321",
-        "supabase.key=test-key",
-        "supabase.bucket=test-bucket"
+        "supabase.key=test-key"
 })
 class MySawitApplicationTests {
 
