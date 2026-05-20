@@ -29,6 +29,11 @@ public class HarvestController {
     private final UserRepository userRepository;
 
     private User getCurrentUser() {
+        // =========================================================
+        // UNTUK TESTING SEMENTARA!
+        // =========================================================
+//        return userRepository.findById(3L)
+//                .orElseThrow(() -> new IllegalStateException("User mock tidak ditemukan di DB"));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalStateException("Authentication required");
@@ -55,16 +60,12 @@ public class HarvestController {
     }
 
     private boolean validateUserMandor(User user) {
-        if (user.getRole() == User.Role.Mandor) {
-            return true;
-        }
-        return false;
+        return user.getRole() == User.Role.Mandor;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<HarvestResponse> submitHarvest(@ModelAttribute HarvestRequest request) {
-        User currentUser = getCurrentUser();
-
+        User currentUser = getCurrentUser(); // Murni ambil dari token/sesi
         HarvestResponse response = harvestService.createHarvest(currentUser, request);
         return ResponseEntity.ok(response);
     }
@@ -73,7 +74,7 @@ public class HarvestController {
     public ResponseEntity<HarvestResponse> approveHarvest(@PathVariable Long id) {
         User currentUser = getCurrentUser();
         if (validateUserMandor(currentUser)) {
-            return ResponseEntity.ok(harvestService.approveHarvest(id,  currentUser));
+            return ResponseEntity.ok(harvestService.approveHarvest(id, currentUser));
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
@@ -94,7 +95,6 @@ public class HarvestController {
             @RequestParam(required = false) String status
     ) {
         User currentUser = getCurrentUser();
-
         List<HarvestResponse> history = harvestService.getMyHarvestHistory(currentUser, startDate, endDate, status);
         return ResponseEntity.ok(history);
     }
@@ -107,7 +107,6 @@ public class HarvestController {
             @RequestParam(required = false) String searchNama) {
 
         User currentUser = getCurrentUser();
-
         List<HarvestResponse> history = harvestService.getMandorHarvestHistory(currentUser, startDate, endDate, status, searchNama);
         return ResponseEntity.ok(history);
     }
