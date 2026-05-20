@@ -1,6 +1,5 @@
 package com.b1.mysawit.harvest.service;
 
-import com.b1.mysawit.domain.FotoHasilPanen;
 import com.b1.mysawit.domain.HasilPanen;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.domain.WorkerAssignment;
