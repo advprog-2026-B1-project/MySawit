@@ -68,6 +68,9 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    runtimeOnly("com.h2database:h2")
+    testImplementation("com.h2database:h2")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 }
 
 tasks.named<Test>("test") {
