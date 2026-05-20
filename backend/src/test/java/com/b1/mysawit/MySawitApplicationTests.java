@@ -11,7 +11,11 @@ import org.springframework.test.context.TestPropertySource;
         "spring.datasource.username=sa",
         "spring.datasource.password=",
         "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "supabase.url=http://localhost:54321",
+        "supabase.key=test-key",
+        "supabase.bucket=test-bucket"
 })
 class MySawitApplicationTests {
 

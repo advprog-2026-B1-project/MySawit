@@ -1,6 +1,6 @@
 package com.b1.mysawit.auth.facade;
 
-import com.b1.mysawit.auth.repository.UserRepository;
+import com.b1.mysawit.repository.UserRepository;
 import com.b1.mysawit.common.exception.BusinessRuleViolationException;
 import com.b1.mysawit.common.exception.ResourceNotFoundException;
 import com.b1.mysawit.domain.User;
