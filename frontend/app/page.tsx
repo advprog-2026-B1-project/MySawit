@@ -2,18 +2,52 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50">
-        <h1 className="text-4xl font-bold text-green-700 mb-4">Selamat Datang di MySawit</h1>
-        <p className="text-gray-600 mb-8">Platform Manajemen Kebun Sawit Terintegrasi</p>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-900 selection:bg-teal-500/30">
+      {/* Decorative background elements */}
+      <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-teal-500/20 blur-[100px]"></div>
+      <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-emerald-500/20 blur-[100px]"></div>
 
-        <div className="flex gap-4">
-          <Link href="/buruh/lapor" className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-            Masuk sebagai Buruh
+      <div className="relative z-10 w-full max-w-2xl p-8 sm:p-12 text-center backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl rounded-3xl transition-all duration-300 hover:shadow-teal-500/10">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-6">
+          Selamat Datang di <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">MySawit</span>
+        </h1>
+        <p className="text-lg text-slate-400 mb-10 max-w-xl mx-auto">
+          Platform Manajemen Kebun Sawit Terintegrasi. Pantau hasil panen, kelola pekerja, dan tingkatkan efisiensi perkebunan Anda.
+        </p>
+
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-10">
+          <Link 
+            href="/auth/login" 
+            className="w-full sm:w-auto px-8 py-3.5 bg-teal-500 text-white font-semibold rounded-xl transition-all hover:bg-teal-400 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+          >
+            Masuk Akun
           </Link>
-          <Link href="/mandor" className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            Masuk sebagai Mandor
+          <Link 
+            href="/auth/register" 
+            className="w-full sm:w-auto px-8 py-3.5 bg-white/10 border border-white/20 text-white font-semibold rounded-xl transition-all hover:bg-white/20 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-slate-900"
+          >
+            Daftar Baru
           </Link>
         </div>
+
+        <div className="pt-8 border-t border-white/10">
+          <p className="text-sm text-slate-400 mb-4">Akses Cepat Dashboard:</p>
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <Link 
+              href="/harvest/buruh/lapor" 
+              className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-all hover:bg-slate-700 hover:text-white"
+            >
+              Dashboard Buruh
+            </Link>
+            <Link 
+              href="/harvest/mandor" 
+              className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-all hover:bg-slate-700 hover:text-white"
+            >
+              Dashboard Mandor
+            </Link>
+          </div>
+        </div>
       </div>
+    </div>
   );
 }
