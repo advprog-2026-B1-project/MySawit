@@ -38,6 +38,7 @@ class AppControllerTest {
     @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
     @MockitoBean private UserDetailsService userDetailsService;
     @MockitoBean private AuthenticationManager authenticationManager;
+    @MockitoBean private com.b1.mysawit.config.DeliveryFeatureInterceptor deliveryFeatureInterceptor;
 
     @Test
     void testLogin_Success() throws Exception {

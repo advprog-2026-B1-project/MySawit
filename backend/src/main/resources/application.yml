@@ -50,3 +50,7 @@ info:
     name: MySawit
     version: 1.0.0
     description: Platform Manajemen Kebun Sawit
+
+mysawit:
+  features:
+    delivery-enabled: ${MYSAWIT_DELIVERY_ENABLED:true}
