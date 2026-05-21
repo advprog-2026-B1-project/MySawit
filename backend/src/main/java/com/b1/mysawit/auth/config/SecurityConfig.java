@@ -44,7 +44,7 @@ public class SecurityConfig {
                     "/oauth2/**",
                     "/login/oauth2/**",
                     "/error",
-                    "/actuator/health"
+                    "/actuator/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

@@ -29,6 +29,24 @@ spring:
             scope: email, profile
 
 supabase:
-  url: ${SUPABASE_URL}
-  key: ${SUPABASE_KEY}
-  bucket: ${SUPABASE_BUCKET}
+  url: ${SUPABASE_URL:http://localhost-dummy}
+  key: ${SUPABASE_KEY:dummy-key}
+  bucket: ${SUPABASE_BUCKET:dummy-bucket}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: MySawit
+    version: 1.0.0
+    description: Platform Manajemen Kebun Sawit
