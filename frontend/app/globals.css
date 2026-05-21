@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@theme {
+  --color-ink: #0A0F0A;
+  --color-verdant: #3FE07A;
+  --color-bone: #F2EFE8;
+}
+
+body {
+  background-color: var(--color-bone);
+  color: var(--color-ink);
+}
