@@ -92,7 +92,7 @@ class HarvestServiceTest {
         mockWorkerAssignment();
 
         User wrongMandor = new User();
-        wrongMandor.setId(99L); // ID mandor lain
+        wrongMandor.setId(99L);
         wrongMandor.setRole(User.Role.Mandor);
 
         IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
@@ -103,7 +103,6 @@ class HarvestServiceTest {
 
     @Test
     void getMyHarvestHistory_WithValidStatus_ParsesStatusEnum() {
-        // Menguji percabangan if (statusStr != null && !statusStr.isBlank())
         when(hasilPanenRepository.findByWorkerIdWithFilters(eq(dummyWorker.getId()), isNull(), isNull(), eq(HasilPanen.Status.Pending)))
                 .thenReturn(List.of(dummyPanen));
         when(fotoHasilPanenRepository.findAllByHasilPanen_Id(100L)).thenReturn(List.of());
@@ -203,7 +202,125 @@ class HarvestServiceTest {
     @Test
     void createHarvest_shouldThrowException_whenPhotosIsNull() {
         HarvestRequest request = mock(HarvestRequest.class);
-        when(request.getPhotos()).thenReturn(null);
+        when(request.getPhotos()).thenReturn(null); // Tes saat List null
+
         assertThrows(IllegalArgumentException.class, () -> harvestService.createHarvest(dummyWorker, request));
+    }
+
+    @Test
+    void createHarvest_shouldThrowException_whenFirstPhotoIsEmptyFile() {
+        HarvestRequest request = mock(HarvestRequest.class);
+        MultipartFile emptyFile = mock(MultipartFile.class);
+
+        when(emptyFile.isEmpty()).thenReturn(true);
+        when(request.getPhotos()).thenReturn(List.of(emptyFile));
+
+        assertThrows(IllegalArgumentException.class, () -> harvestService.createHarvest(dummyWorker, request));
+    }
+
+    @Test
+    void rejectHarvest_ShouldThrowException_WhenAlreadyApproved() {
+        dummyPanen.setStatus(HasilPanen.Status.Approved);
+        when(hasilPanenRepository.findById(100L)).thenReturn(Optional.of(dummyPanen));
+        mockWorkerAssignment();
+
+        assertThrows(IllegalStateException.class, () -> harvestService.rejectHarvest(100L, "alasan", dummyMandor));
+    }
+
+    @Test
+    void getMyHarvestHistory_WithValidStatus() {
+        when(hasilPanenRepository.findByWorkerIdWithFilters(eq(1L), isNull(), isNull(), eq(HasilPanen.Status.Pending)))
+                .thenReturn(List.of(dummyPanen));
+
+        List<HarvestResponse> result = harvestService.getMyHarvestHistory(dummyWorker, null, null, "Pending");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getMyHarvestHistory_WithBlankStatus() {
+        when(hasilPanenRepository.findByWorkerIdWithFilters(eq(1L), isNull(), isNull(), isNull()))
+                .thenReturn(List.of(dummyPanen));
+
+        List<HarvestResponse> result = harvestService.getMyHarvestHistory(dummyWorker, null, null, "   ");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getMandorHarvestHistory_ShouldThrowException_WhenUserIsNotMandor() {
+        assertThrows(IllegalStateException.class, () ->
+                harvestService.getMandorHarvestHistory(dummyWorker, null, null, null, null)
+        );
+    }
+
+    @Test
+    void getMandorHarvestHistory_WithValidFilters() {
+        when(hasilPanenRepository.findForMandorWithFilters(eq(2L), isNull(), isNull(), eq(HasilPanen.Status.Approved), eq("Budi")))
+                .thenReturn(List.of(dummyPanen));
+
+        List<HarvestResponse> result = harvestService.getMandorHarvestHistory(dummyMandor, null, null, "Approved", "Budi");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getMandorHarvestHistory_WithBlankFilters() {
+        when(hasilPanenRepository.findForMandorWithFilters(eq(2L), isNull(), isNull(), isNull(), eq("")))
+                .thenReturn(List.of(dummyPanen));
+
+        List<HarvestResponse> result = harvestService.getMandorHarvestHistory(dummyMandor, null, null, "   ", "   ");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void approveHarvest_ShouldThrowException_WhenAlreadyApproved() {
+        dummyPanen.setStatus(HasilPanen.Status.Approved);
+        when(hasilPanenRepository.findById(100L)).thenReturn(Optional.of(dummyPanen));
+
+        mockWorkerAssignment();
+
+        assertThrows(IllegalStateException.class, () -> harvestService.approveHarvest(100L, dummyMandor));
+    }
+
+    @Test
+    void createHarvest_shouldThrowException_whenPhotosIsEmptyList() {
+        HarvestRequest request = mock(HarvestRequest.class);
+        when(request.getPhotos()).thenReturn(List.of()); // Tes saat List kosong []
+
+        assertThrows(IllegalArgumentException.class, () -> harvestService.createHarvest(dummyWorker, request));
+    }
+
+    @Test
+    void getMyHarvestHistory_ShouldMapCorrectly_WhenWorkerIsNull() {
+        HasilPanen panenTanpaWorker = new HasilPanen();
+        panenTanpaWorker.setId(99L);
+        panenTanpaWorker.setTanggalPanen(LocalDate.now());
+        panenTanpaWorker.setKilogram(BigDecimal.TEN);
+        panenTanpaWorker.setStatus(HasilPanen.Status.Pending);
+        panenTanpaWorker.setWorker(null);
+
+        when(hasilPanenRepository.findByWorkerIdWithFilters(eq(1L), isNull(), isNull(), isNull()))
+                .thenReturn(List.of(panenTanpaWorker));
+
+        List<HarvestResponse> result = harvestService.getMyHarvestHistory(dummyWorker, null, null, null);
+
+        assertEquals(1, result.size());
+        assertNull(result.get(0).getNamaBuruh());
+    }
+
+    private HasilPanen validateMandorAuthorization(Long harvestId, User currentMandor) {
+        if (currentMandor.getRole() != User.Role.Mandor) {
+            throw new IllegalStateException("Hanya Mandor yang dapat menyetujui/menolak panen");
+        }
+
+        HasilPanen panen = hasilPanenRepository.findById(harvestId)
+                .orElseThrow(() -> new IllegalArgumentException("Data panen tidak ditemukan"));
+
+        WorkerAssignment assignment = workerAssignmentRepository.findByWorkerIdAndUnassignedAtIsNull(panen.getWorker().getId())
+                .orElseThrow(() -> new IllegalStateException("Buruh tidak memiliki mandor yang ditugaskan saat ini"));
+
+        if (!assignment.getMandor().getId().equals(currentMandor.getId())) {
+            throw new IllegalStateException("Anda tidak memiliki akses untuk memvalidasi panen buruh ini");
+        }
+
+        return panen;
     }
 }

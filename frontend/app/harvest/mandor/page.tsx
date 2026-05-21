@@ -61,7 +61,6 @@ export default function MandorDashboard() {
         };
 
         fetchData();
-        // eslint-disable-next-line react-hooks/set-state-in-effect
     }, [startDate, endDate, statusFilter, searchNama, refreshTrigger]);
 
     const handleApprove = async (id: number) => {
