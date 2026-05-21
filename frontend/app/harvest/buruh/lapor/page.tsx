@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 
 export default function LaporPanenBuruh() {
     const [kilogram, setKilogram] = useState("");
@@ -77,100 +78,142 @@ export default function LaporPanenBuruh() {
         }
     };
 
+    const inputCls = "w-full bg-ink border border-white/10 text-bone text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none placeholder:text-bone/30 transition";
+
     return (
-        <div className="p-6 max-w-2xl mx-auto text-gray-800">
-            <h1 className="text-2xl font-bold mb-6 text-gray-900">Form Laporan Hasil Panen</h1>
+        <div className="px-8 py-6 max-w-2xl">
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5 bg-white p-6 shadow-sm rounded-lg border border-gray-200">
-
-                {/* Input Kilogram */}
-                <div className="flex flex-col gap-2">
-                    <label className="font-semibold text-sm text-gray-700">Kilogram Panen</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                        placeholder="Contoh: 150.5"
-                        value={kilogram}
-                        onChange={(e) => setKilogram(e.target.value)}
-                        required
-                        disabled={isLoading}
-                    />
+            {/* Page header */}
+            <div className="flex items-start justify-between mb-8">
+                <div>
+                    <h1 className="text-xl font-semibold text-bone">Lapor Panen</h1>
+                    <p className="text-sm text-bone/40 mt-1">Kirim laporan hasil panen harian</p>
                 </div>
+                <Link
+                    href="/harvest/buruh/riwayat"
+                    className="px-3 py-1.5 text-xs border border-white/10 text-bone/60 rounded-md hover:border-white/20 hover:text-bone transition shrink-0"
+                >
+                    Lihat Riwayat
+                </Link>
+            </div>
 
-                {/* Input Berita */}
-                <div className="flex flex-col gap-2">
-                    <label className="font-semibold text-sm text-gray-700">Berita/Keterangan</label>
-                    <textarea
-                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full resize-none"
-                        placeholder="Detail panen hari ini..."
-                        value={berita}
-                        onChange={(e) => setBerita(e.target.value)}
-                        rows={3}
-                        disabled={isLoading}
-                    ></textarea>
-                </div>
+            {/* Form card */}
+            <form onSubmit={handleSubmit} className="bg-ink-muted border border-white/10 rounded-lg divide-y divide-white/5">
 
-                {/* Drag and Drop Area */}
-                <div className="flex flex-col gap-2">
-                    <label className="font-semibold text-sm text-gray-700">Bukti Foto (Bisa lebih dari 1)</label>
+                {/* Fields */}
+                <div className="px-6 py-5 space-y-5">
 
-                    <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                            isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                        } ${
-                            isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:bg-gray-50 bg-gray-50/50"
-                        }`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        onClick={() => !isLoading && fileInputRef.current?.click()}
-                    >
-                        <p className="text-gray-500 text-sm">
-                            Tarik dan lepas gambar di sini, atau <span className="text-blue-600 font-medium">klik untuk memilih file</span>
-                        </p>
+                    {/* Kilogram */}
+                    <div>
+                        <label className="block text-xs font-semibold text-bone/40 uppercase tracking-wider mb-1.5">
+                            Kilogram Panen <span className="text-verdant/60">*</span>
+                        </label>
                         <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            className="hidden"
-                            ref={fileInputRef}
-                            onChange={handleFileSelect}
+                            type="number"
+                            step="0.01"
+                            className={inputCls}
+                            placeholder="Contoh: 150.5"
+                            value={kilogram}
+                            onChange={(e) => setKilogram(e.target.value)}
+                            required
                             disabled={isLoading}
                         />
                     </div>
 
-                    {/* Preview File */}
-                    {files.length > 0 && (
-                        <div className="mt-2 flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">File terpilih ({files.length}):</span>
-                            <ul className="space-y-2">
+                    {/* Berita */}
+                    <div>
+                        <label className="block text-xs font-semibold text-bone/40 uppercase tracking-wider mb-1.5">
+                            Berita / Keterangan
+                        </label>
+                        <textarea
+                            className={`${inputCls} resize-none`}
+                            placeholder="Detail panen hari ini..."
+                            value={berita}
+                            onChange={(e) => setBerita(e.target.value)}
+                            rows={3}
+                            disabled={isLoading}
+                        />
+                    </div>
+
+                    {/* Upload */}
+                    <div>
+                        <label className="block text-xs font-semibold text-bone/40 uppercase tracking-wider mb-1.5">
+                            Bukti Foto <span className="text-verdant/60">*</span>
+                        </label>
+
+                        <div
+                            className={`border-2 border-dashed rounded-lg px-6 py-8 text-center transition ${
+                                isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                            } ${
+                                isDragging
+                                    ? "border-verdant bg-verdant-soft"
+                                    : "border-white/10 hover:border-verdant/30 hover:bg-white/[0.02]"
+                            }`}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            onClick={() => !isLoading && fileInputRef.current?.click()}
+                        >
+                            <p className="text-2xl mb-2 text-bone/20">↑</p>
+                            <p className="text-sm text-bone/40">
+                                Tarik file ke sini, atau{" "}
+                                <span className="text-verdant font-medium">klik untuk memilih</span>
+                            </p>
+                            <p className="text-xs text-bone/20 mt-1">PNG, JPG, WEBP</p>
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                className="hidden"
+                                ref={fileInputRef}
+                                onChange={handleFileSelect}
+                                disabled={isLoading}
+                            />
+                        </div>
+
+                        {/* File list */}
+                        {files.length > 0 && (
+                            <div className="mt-3 space-y-1.5">
+                                <p className="text-xs text-bone/30 uppercase tracking-wider">
+                                    {files.length} file dipilih
+                                </p>
                                 {files.map((file, index) => (
-                                    <li key={index} className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded-md text-sm border border-gray-200">
-                                        <span className="truncate max-w-[80%] text-gray-700">{file.name}</span>
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between px-3 py-2 bg-ink border border-white/5 rounded-md text-sm group"
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="text-bone/20 shrink-0">▪</span>
+                                            <span className="truncate text-bone/60 text-xs">{file.name}</span>
+                                        </div>
                                         <button
                                             type="button"
                                             onClick={() => removeFile(index)}
-                                            className="text-red-500 hover:text-red-700 font-medium text-xs px-2 py-1"
+                                            className="text-bone/20 hover:text-red-400 transition text-xs ml-2 shrink-0"
                                             disabled={isLoading}
                                         >
-                                            Hapus
+                                            ✕
                                         </button>
-                                    </li>
+                                    </div>
                                 ))}
-                            </ul>
-                        </div>
-                    )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Submit Button */}
-                <button
-                    type="submit"
-                    className="mt-4 w-full bg-blue-600 text-white font-semibold py-2.5 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    disabled={files.length === 0 || !kilogram || isLoading}
-                >
-                    {isLoading ? "Mengirim Laporan..." : "Kirim Laporan"}
-                </button>
+                {/* Footer */}
+                <div className="px-6 py-4 bg-ink-soft rounded-b-lg flex items-center justify-between">
+                    <p className="text-xs text-bone/25">
+                        {files.length === 0 ? "Minimal 1 foto wajib dilampirkan" : `${files.length} foto siap dikirim`}
+                    </p>
+                    <button
+                        type="submit"
+                        className="px-5 py-2 bg-verdant text-ink text-sm font-semibold rounded-md hover:bg-verdant-hover disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        disabled={files.length === 0 || !kilogram || isLoading}
+                    >
+                        {isLoading ? "Mengirim..." : "Kirim Laporan"}
+                    </button>
+                </div>
             </form>
         </div>
     );
