@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { deliveryApi, Delivery } from "../../../../services/deliveryApi";
 
+const inputCls = "w-full bg-ink border border-white/10 text-bone text-sm rounded-md px-3 py-2.5 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none transition placeholder:text-bone/30";
+
 export default function AdminDeliveryDetail() {
     const params = useParams();
     const router = useRouter();
@@ -55,23 +57,23 @@ export default function AdminDeliveryDetail() {
         return new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
     };
 
-    if (loading) return <div className="p-6 text-center text-ink/50">Memuat data...</div>;
-    if (error || !delivery) return <div className="p-6 text-red-500">Error: {error || "Tidak ditemukan"}</div>;
+    if (loading) return <div className="p-8 text-center text-bone/30 text-sm">Memuat data...</div>;
+    if (error || !delivery) return <div className="p-8 text-red-400 bg-red-500/10 border border-red-500/20 max-w-2xl mx-auto rounded-lg mt-8">Error: {error || "Tidak ditemukan"}</div>;
 
     const canDecide = delivery.adminDecision === "Pending" && delivery.mandorDecision === "Approved";
 
     return (
-        <div className="p-6 max-w-3xl mx-auto text-ink">
-            <button onClick={() => router.back()} className="mb-4 text-blue-600 hover:underline text-sm">
-                &larr; Kembali ke daftar
+        <div className="px-8 py-6 max-w-3xl mx-auto">
+            <button onClick={() => router.back()} className="mb-6 text-bone/40 hover:text-bone text-sm flex items-center gap-2 transition">
+                <span>&larr;</span> Kembali ke daftar
             </button>
-            <h1 className="text-2xl font-bold mb-6">Review Pengiriman</h1>
+            <h1 className="text-xl font-semibold text-bone mb-6">Review Pengiriman</h1>
 
-            <div className="bg-white p-6 rounded-lg shadow border border-ink/10 space-y-6">
+            <div className="bg-ink-muted p-6 rounded-lg border border-white/10 space-y-6">
 
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Informasi Pengiriman</h3>
+                <h3 className="text-xs font-semibold text-bone/40 uppercase tracking-wider border-b border-white/10 pb-3">Informasi Pengiriman</h3>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
                     <InfoField label="Kebun Asal" value={delivery.hasilPanen?.kebun?.namaKebun} />
                     <InfoField label="Berat Awal (Dilaporkan)" value={`${delivery.hasilPanen?.kilogram} Kg`} highlight />
                     <InfoField label="Mandor Verifikator" value={delivery.mandor?.nama} />
@@ -82,73 +84,77 @@ export default function AdminDeliveryDetail() {
 
                 {/* Review history */}
                 {delivery.adminDecision !== "Pending" && (
-                    <div className="p-4 bg-gray-50 border rounded-md text-sm space-y-1">
-                        <p className="font-bold">Hasil Review Admin:</p>
-                        <p>Keputusan: <strong>{delivery.adminDecision}</strong></p>
+                    <div className="p-4 bg-white/5 border border-white/10 rounded-md text-sm space-y-1 mt-4">
+                        <p className="font-semibold text-bone/60 mb-2">Hasil Review Admin:</p>
+                        <p className="text-bone">Keputusan: <strong className={
+                            delivery.adminDecision === "Approved" ? "text-verdant" :
+                            delivery.adminDecision === "PartiallyApproved" ? "text-yellow-400" :
+                            "text-red-400"
+                        }>{delivery.adminDecision}</strong></p>
                         {delivery.adminDecision === "PartiallyApproved" && (
-                            <p>Berat Diakui: <strong>{delivery.acknowledgedKg} Kg</strong></p>
+                            <p className="text-bone">Berat Diakui: <strong>{delivery.acknowledgedKg} Kg</strong></p>
                         )}
                         {delivery.adminRejectionReason && (
-                            <p>Alasan: {delivery.adminRejectionReason}</p>
+                            <p className="text-bone/80 mt-1">Alasan: {delivery.adminRejectionReason}</p>
                         )}
                     </div>
                 )}
 
                 {/* Actions */}
                 {canDecide && (
-                    <div className="border-t pt-6">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Final Review Produksi</h3>
+                    <div className="border-t border-white/10 pt-6 mt-6">
+                        <h3 className="text-xs font-semibold text-bone/40 uppercase tracking-wider mb-5">Final Review Produksi</h3>
 
                         {actionState === "None" ? (
                             <div className="flex flex-wrap gap-3">
                                 <button
                                     onClick={() => handleDecide("Approved")}
                                     disabled={submitting}
-                                    className="px-5 py-2 bg-verdant text-ink font-bold rounded-md hover:opacity-90 disabled:opacity-50 transition"
+                                    className="px-5 py-2.5 bg-verdant text-ink font-semibold rounded-md hover:bg-verdant-hover disabled:opacity-50 transition"
                                 >
                                     ✅ Approve Penuh
                                 </button>
                                 <button
                                     onClick={() => setActionState("PartiallyApproved")}
-                                    className="px-5 py-2 bg-amber-400 text-ink font-bold rounded-md hover:bg-amber-500 transition"
+                                    className="px-5 py-2.5 border border-yellow-500/30 text-yellow-400 font-semibold rounded-md hover:bg-yellow-500/10 transition"
                                 >
                                     ⚖️ Approve Parsial
                                 </button>
                                 <button
                                     onClick={() => setActionState("Rejected")}
-                                    className="px-5 py-2 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 transition"
+                                    className="px-5 py-2.5 border border-red-500/30 text-red-400 font-semibold rounded-md hover:bg-red-500/10 transition"
                                 >
                                     ❌ Tolak Seluruhnya
                                 </button>
                             </div>
                         ) : (
-                            <div className="bg-gray-50 border rounded-md p-5 space-y-4">
-                                <h4 className="font-bold text-sm">
+                            <div className="bg-white/5 border border-white/10 p-5 rounded-md space-y-5">
+                                <h4 className="font-semibold text-sm text-bone">
                                     {actionState === "Rejected" ? "Form Penolakan" : "Form Persetujuan Parsial"}
                                 </h4>
 
                                 {actionState === "PartiallyApproved" && (
                                     <div>
-                                        <label className="block text-sm font-semibold mb-1">Kilogram yang Diakui Valid:</label>
+                                        <label className="block text-xs font-semibold text-bone/40 uppercase tracking-wider mb-2">Kilogram yang Diakui Valid</label>
                                         <input
                                             type="number"
-                                            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verdant"
+                                            className={inputCls}
                                             value={acknowledgedKg}
                                             onChange={e => setAcknowledgedKg(e.target.value)}
                                             placeholder={`Maksimal ${delivery.hasilPanen?.kilogram} Kg`}
                                             max={delivery.hasilPanen?.kilogram}
                                             min={1}
                                         />
-                                        <p className="text-xs text-gray-400 mt-1">Sisanya dianggap hilang/rusak saat transportasi.</p>
+                                        <p className="text-xs text-bone/30 mt-1.5">Sisanya dianggap hilang/rusak saat transportasi.</p>
                                     </div>
                                 )}
 
                                 <div>
-                                    <label className="block text-sm font-semibold mb-1">
-                                        {actionState === "Rejected" ? "Alasan Penolakan:" : "Alasan Kekurangan:"}
+                                    <label className="block text-xs font-semibold text-bone/40 uppercase tracking-wider mb-2">
+                                        {actionState === "Rejected" ? "Alasan Penolakan" : "Alasan Kekurangan"}
                                     </label>
                                     <textarea
-                                        className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verdant"
+                                        className={inputCls}
                                         rows={3}
                                         value={rejectReason}
                                         onChange={e => setRejectReason(e.target.value)}
@@ -156,17 +162,17 @@ export default function AdminDeliveryDetail() {
                                     />
                                 </div>
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 pt-2">
                                     <button
                                         onClick={() => { setActionState("None"); setRejectReason(""); setAcknowledgedKg(""); }}
-                                        className="px-4 py-2 border rounded-md text-sm hover:bg-gray-100 transition"
+                                        className="px-4 py-2 border border-white/10 text-bone/60 rounded-md text-sm hover:border-white/20 hover:text-bone transition"
                                     >
                                         Batal
                                     </button>
                                     <button
                                         onClick={() => handleDecide(actionState)}
                                         disabled={submitting}
-                                        className="px-4 py-2 bg-ink text-white rounded-md font-bold text-sm disabled:opacity-50 transition"
+                                        className="px-5 py-2 bg-verdant text-ink font-semibold rounded-md text-sm disabled:opacity-50 transition"
                                     >
                                         Konfirmasi {actionState === "Rejected" ? "Penolakan" : "Parsial"}
                                     </button>
@@ -183,8 +189,8 @@ export default function AdminDeliveryDetail() {
 function InfoField({ label, value, highlight }: { label: string; value?: string; highlight?: boolean }) {
     return (
         <div>
-            <p className="text-xs text-gray-400 mb-0.5">{label}</p>
-            <p className={`font-semibold ${highlight ? "text-verdant text-lg" : "text-ink"}`}>{value || "-"}</p>
+            <p className="text-xs text-bone/40 uppercase tracking-wider mb-1">{label}</p>
+            <p className={`font-medium ${highlight ? "text-verdant text-lg" : "text-bone"}`}>{value || "-"}</p>
         </div>
     );
 }

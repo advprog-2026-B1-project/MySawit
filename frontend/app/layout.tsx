@@ -33,6 +33,14 @@ const navLinks = [
             { label: "Dashboard Mandor", href: "/harvest/mandor" },
         ],
     },
+    {
+        group: "Pengiriman",
+        items: [
+            { label: "Tugas Supir", href: "/delivery/supir" },
+            { label: "Manajemen Mandor", href: "/delivery/mandor" },
+            { label: "Review Admin", href: "/delivery/admin" },
+        ],
+    },
 ];
 
 export default function RootLayout({

@@ -47,22 +47,22 @@ export default function MandorDeliveryDetail() {
         return new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
     };
 
-    if (loading) return <div className="p-6 text-center text-ink/50">Memuat data...</div>;
-    if (error || !delivery) return <div className="p-6 text-red-500">Error: {error || "Tidak ditemukan"}</div>;
+    if (loading) return <div className="p-8 text-center text-bone/30 text-sm">Memuat data...</div>;
+    if (error || !delivery) return <div className="p-8 text-red-400 bg-red-500/10 border border-red-500/20 max-w-2xl mx-auto rounded-lg mt-8">Error: {error || "Tidak ditemukan"}</div>;
 
     const canDecide = delivery.status === "Tiba" && delivery.mandorDecision === "Pending";
 
     return (
-        <div className="p-6 max-w-3xl mx-auto text-ink">
-            <button onClick={() => router.back()} className="mb-4 text-blue-600 hover:underline text-sm">
-                &larr; Kembali ke daftar
+        <div className="px-8 py-6 max-w-3xl mx-auto">
+            <button onClick={() => router.back()} className="mb-6 text-bone/40 hover:text-bone text-sm flex items-center gap-2 transition">
+                <span>&larr;</span> Kembali ke daftar
             </button>
-            <h1 className="text-2xl font-bold mb-6">Detail Pengiriman</h1>
+            <h1 className="text-xl font-semibold text-bone mb-6">Detail Pengiriman</h1>
 
-            <div className="bg-white p-6 rounded-lg shadow border border-ink/10 space-y-6">
+            <div className="bg-ink-muted p-6 rounded-lg border border-white/10 space-y-6">
 
                 {/* Info grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
                     <InfoField label="Supir" value={delivery.driver?.nama} />
                     <InfoField label="Kebun Asal" value={delivery.hasilPanen?.kebun?.namaKebun} />
                     <InfoField label="Berat Sawit" value={`${delivery.hasilPanen?.kilogram} Kg`} />
@@ -79,51 +79,54 @@ export default function MandorDeliveryDetail() {
 
                 {/* Rejection reason */}
                 {delivery.mandorDecision === "Rejected" && delivery.mandorRejectionReason && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-md text-sm">
-                        <p className="font-bold text-red-800 mb-1">Alasan Penolakan:</p>
-                        <p className="text-red-700">{delivery.mandorRejectionReason}</p>
+                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-md text-sm mt-4">
+                        <p className="font-semibold text-red-400 mb-1">Alasan Penolakan:</p>
+                        <p className="text-red-300/80">{delivery.mandorRejectionReason}</p>
                     </div>
                 )}
 
                 {/* Actions */}
                 {canDecide && (
-                    <div className="border-t pt-6">
-                        <h3 className="text-lg font-bold mb-4">Verifikasi Pengiriman</h3>
+                    <div className="border-t border-white/10 pt-6 mt-6">
+                        <h3 className="text-sm font-semibold text-bone/60 mb-4">Verifikasi Pengiriman</h3>
 
                         {!isRejecting ? (
                             <div className="flex gap-3">
                                 <button
                                     onClick={handleApprove}
                                     disabled={submitting}
-                                    className="px-5 py-2 bg-verdant text-ink font-bold rounded-md hover:opacity-90 disabled:opacity-50 transition"
+                                    className="px-5 py-2 bg-verdant text-ink font-semibold rounded-md hover:bg-verdant-hover disabled:opacity-50 transition"
                                 >
                                     Setujui Pengiriman
                                 </button>
                                 <button
                                     onClick={() => setIsRejecting(true)}
-                                    className="px-5 py-2 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 transition"
+                                    className="px-5 py-2 border border-red-500/30 text-red-400 font-semibold rounded-md hover:bg-red-500/10 transition"
                                 >
                                     Tolak Pengiriman
                                 </button>
                             </div>
                         ) : (
-                            <div className="bg-red-50 border border-red-200 p-4 rounded-md space-y-3">
-                                <label className="block text-sm font-bold text-red-800">Alasan Penolakan:</label>
-                                <textarea
-                                    className="w-full border border-red-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
-                                    rows={3}
-                                    value={rejectReason}
-                                    onChange={e => setRejectReason(e.target.value)}
-                                    placeholder="Masukkan alasan penolakan..."
-                                />
+                            <div className="bg-white/5 border border-white/10 p-5 rounded-md space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-red-400 uppercase tracking-wider mb-2">Alasan Penolakan:</label>
+                                    <textarea
+                                        className="w-full bg-ink border border-white/10 text-bone text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-red-500 focus:border-red-500 focus:outline-none placeholder:text-bone/30 transition"
+                                        rows={3}
+                                        value={rejectReason}
+                                        onChange={e => setRejectReason(e.target.value)}
+                                        placeholder="Masukkan alasan penolakan..."
+                                        autoFocus
+                                    />
+                                </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setIsRejecting(false)} className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50 transition">
+                                    <button onClick={() => setIsRejecting(false)} className="px-4 py-2 border border-white/10 text-bone/60 rounded-md text-sm hover:border-white/20 hover:text-bone transition">
                                         Batal
                                     </button>
                                     <button
                                         onClick={handleReject}
                                         disabled={submitting || !rejectReason.trim()}
-                                        className="px-4 py-2 bg-red-600 text-white rounded-md font-bold text-sm disabled:opacity-50 transition"
+                                        className="px-4 py-2 bg-red-600 text-white rounded-md font-semibold text-sm disabled:opacity-40 hover:bg-red-700 transition"
                                     >
                                         Konfirmasi Tolak
                                     </button>
@@ -140,25 +143,25 @@ export default function MandorDeliveryDetail() {
 function InfoField({ label, value, children }: { label: string; value?: string; children?: React.ReactNode }) {
     return (
         <div>
-            <p className="text-xs text-gray-400 mb-0.5">{label}</p>
-            {children || <p className="font-semibold text-ink">{value || "-"}</p>}
+            <p className="text-xs text-bone/40 uppercase tracking-wider mb-1">{label}</p>
+            {children || <p className="font-medium text-bone">{value || "-"}</p>}
         </div>
     );
 }
 
 function StatusBadge({ status }: { status: string }) {
-    const cls = status === "Memuat" ? "bg-yellow-100 text-yellow-800"
-        : status === "Mengirim" ? "bg-blue-100 text-blue-800"
-        : "bg-green-100 text-green-800";
-    return <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${cls}`}>{status}</span>;
+    const cls = status === "Memuat" ? "bg-yellow-500/10 text-yellow-400"
+        : status === "Mengirim" ? "bg-blue-500/10 text-blue-400"
+        : "bg-verdant-soft text-verdant";
+    return <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${cls}`}>{status}</span>;
 }
 
 function DecisionBadge({ decision }: { decision: string }) {
     const map: Record<string, { cls: string; label: string }> = {
-        Pending: { cls: "bg-gray-100 text-gray-600", label: "Menunggu" },
-        Approved: { cls: "bg-green-100 text-green-800", label: "Disetujui" },
-        Rejected: { cls: "bg-red-100 text-red-800", label: "Ditolak" },
+        Pending: { cls: "bg-white/5 text-bone/50", label: "Menunggu" },
+        Approved: { cls: "bg-verdant-soft text-verdant", label: "Disetujui" },
+        Rejected: { cls: "bg-red-500/10 text-red-400", label: "Ditolak" },
     };
     const { cls, label } = map[decision] ?? map.Pending;
-    return <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${cls}`}>{label}</span>;
+    return <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${cls}`}>{label}</span>;
 }
