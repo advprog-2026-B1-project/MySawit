@@ -1,6 +1,6 @@
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:../.env[.properties], optional:file:.env[.properties]
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -32,3 +32,12 @@ supabase:
   url: ${SUPABASE_URL}
   key: ${SUPABASE_KEY}
   bucket: ${SUPABASE_BUCKET}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    tags:
+      application: MySawit
