@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../app/**/*.{ts,tsx}";
 
 @theme {
   /* Surfaces */
@@ -25,9 +26,23 @@
   --font-mono: "Geist Mono", ui-monospace, monospace;
 }
 
+:root {
+  --color-ink: #0A0F0A;
+  --color-ink-soft: #0F1510;
+  --color-ink-muted: #141A14;
+  --color-verdant: #3FE07A;
+  --color-verdant-hover: #2FC966;
+  --color-verdant-soft: #1A3324;
+  --color-verdant-dim: #3FE07A1A;
+  --color-bone: #F2EFE8;
+  --color-bone-soft: #E8E4DB;
+  --color-line: #1E2A1E;
+  --color-line-soft: #192219;
+}
+
 body {
-  background: var(--color-ink);
-  color: var(--color-bone);
+  background-color: #0A0F0A;
+  color: #F2EFE8;
   font-family: var(--font-sans);
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 
 export default function LaporPanenBuruh() {
     const [kilogram, setKilogram] = useState("");
