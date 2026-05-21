@@ -1,6 +1,7 @@
 package com.b1.mysawit.kebun.service;
 
 import com.b1.mysawit.auth.facade.UserFacade;
+import com.b1.mysawit.auth.facade.UserSummary;
 import com.b1.mysawit.common.exception.BusinessRuleViolationException;
 import com.b1.mysawit.common.exception.DuplicateResourceException;
 import com.b1.mysawit.common.exception.ResourceNotFoundException;
@@ -9,6 +10,7 @@ import com.b1.mysawit.domain.Kebun;
 import com.b1.mysawit.domain.MandorAssignment;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.kebun.dto.KebunCreateRequest;
+import com.b1.mysawit.kebun.dto.KebunDetailResponse;
 import com.b1.mysawit.kebun.dto.KebunKoordinatProjection;
 import com.b1.mysawit.kebun.dto.KebunResponse;
 import com.b1.mysawit.kebun.dto.KebunUpdateRequest;
@@ -704,6 +706,98 @@ class KebunServiceImplTest {
 
             assertThat(reassignMandorMethod.getAnnotation(Transactional.class)).isNotNull();
             assertThat(reassignSupirMethod.getAnnotation(Transactional.class)).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("getKebunDetail()")
+    class GetKebunDetail {
+
+        @Test
+        @DisplayName("Given existing kebun with active mandor and supir → should return full detail")
+        void givenKebunWithMandorAndSupir_shouldReturnFullDetail() {
+            User mandorUser = buildUser(10L, "Budi Mandor", "budi@test.com");
+            User supirUser = buildUser(20L, "Andi Supir", "andi@test.com");
+
+            MandorAssignment mandorAssignment = MandorAssignment.builder()
+                    .mandor(mandorUser).kebun(kebunSample).assignedAt(OffsetDateTime.now()).build();
+            DriverAssignment driverAssignment = DriverAssignment.builder()
+                    .driver(supirUser).kebun(kebunSample).assignedAt(OffsetDateTime.now()).build();
+
+            UserSummary mandorSummary = new UserSummary(10L, "Budi Mandor", "budi@test.com");
+            UserSummary supirSummary = new UserSummary(20L, "Andi Supir", "andi@test.com");
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(mandorAssignmentRepository.findByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(Optional.of(mandorAssignment));
+            when(userFacade.findUserSummaryById(10L)).thenReturn(Optional.of(mandorSummary));
+            when(driverAssignmentRepository.findAllByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(List.of(driverAssignment));
+            when(userFacade.findUserSummariesByIds(List.of(20L), null))
+                    .thenReturn(List.of(supirSummary));
+
+            KebunDetailResponse result = kebunService.getKebunDetail(1L, null);
+
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getMandor()).isNotNull();
+            assertThat(result.getMandor().getNama()).isEqualTo("Budi Mandor");
+            assertThat(result.getSupirList()).hasSize(1);
+            assertThat(result.getSupirList().get(0).getNama()).isEqualTo("Andi Supir");
+        }
+
+        @Test
+        @DisplayName("Given kebun with no active mandor → mandor field should be null")
+        void givenKebunWithNoActiveMandor_shouldReturnNullMandor() {
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(mandorAssignmentRepository.findByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(Optional.empty());
+            when(driverAssignmentRepository.findAllByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(List.of());
+            when(userFacade.findUserSummariesByIds(List.of(), null)).thenReturn(List.of());
+
+            KebunDetailResponse result = kebunService.getKebunDetail(1L, null);
+
+            assertThat(result.getMandor()).isNull();
+            assertThat(result.getSupirList()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Given searchNamaSupir → should delegate filter to userFacade")
+        void givenSearchNamaSupir_shouldPassFilterToFacade() {
+            User supirUser = buildUser(20L, "Andi Supir", "andi@test.com");
+            DriverAssignment driverAssignment = DriverAssignment.builder()
+                    .driver(supirUser).kebun(kebunSample).assignedAt(OffsetDateTime.now()).build();
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(mandorAssignmentRepository.findByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(Optional.empty());
+            when(driverAssignmentRepository.findAllByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(List.of(driverAssignment));
+            when(userFacade.findUserSummariesByIds(List.of(20L), "andi"))
+                    .thenReturn(List.of(new UserSummary(20L, "Andi Supir", "andi@test.com")));
+
+            KebunDetailResponse result = kebunService.getKebunDetail(1L, "andi");
+
+            verify(userFacade).findUserSummariesByIds(List.of(20L), "andi");
+            assertThat(result.getSupirList()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Given non-existing kebun id → should throw ResourceNotFoundException")
+        void givenNonExistingId_shouldThrowResourceNotFoundException() {
+            when(kebunRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> kebunService.getKebunDetail(99L, null))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("99");
+        }
+
+        private User buildUser(Long id, String nama, String email) {
+            User u = new User();
+            u.setId(id);
+            u.setNama(nama);
+            u.setEmail(email);
+            return u;
         }
     }
 

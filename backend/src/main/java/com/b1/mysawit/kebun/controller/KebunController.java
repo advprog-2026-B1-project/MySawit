@@ -3,6 +3,7 @@ package com.b1.mysawit.kebun.controller;
 import com.b1.mysawit.kebun.dto.AssignMandorRequest;
 import com.b1.mysawit.kebun.dto.AssignSupirRequest;
 import com.b1.mysawit.kebun.dto.KebunCreateRequest;
+import com.b1.mysawit.kebun.dto.KebunDetailResponse;
 import com.b1.mysawit.kebun.dto.KebunResponse;
 import com.b1.mysawit.kebun.dto.KebunUpdateRequest;
 import com.b1.mysawit.kebun.dto.ReassignMandorRequest;
@@ -43,6 +44,13 @@ public class KebunController {
     @GetMapping("/{id}")
     public ResponseEntity<KebunResponse> getKebunById(@PathVariable Long id) {
         return ResponseEntity.ok(kebunService.getKebunById(id));
+    }
+
+    @GetMapping("/{id}/detail")
+    public ResponseEntity<KebunDetailResponse> getKebunDetail(
+            @PathVariable Long id,
+            @RequestParam(required = false) String searchNamaSupir) {
+        return ResponseEntity.ok(kebunService.getKebunDetail(id, searchNamaSupir));
     }
 
     @PutMapping("/{id}")

@@ -1,6 +1,7 @@
 package com.b1.mysawit.kebun.service;
 
 import com.b1.mysawit.auth.facade.UserFacade;
+import com.b1.mysawit.auth.facade.UserSummary;
 import com.b1.mysawit.common.exception.BusinessRuleViolationException;
 import com.b1.mysawit.common.exception.DuplicateResourceException;
 import com.b1.mysawit.common.exception.ResourceNotFoundException;
@@ -9,6 +10,7 @@ import com.b1.mysawit.domain.Kebun;
 import com.b1.mysawit.domain.MandorAssignment;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.kebun.dto.KebunCreateRequest;
+import com.b1.mysawit.kebun.dto.KebunDetailResponse;
 import com.b1.mysawit.kebun.dto.KebunResponse;
 import com.b1.mysawit.kebun.dto.KebunUpdateRequest;
 import com.b1.mysawit.kebun.repository.DriverAssignmentRepository;
@@ -76,6 +78,36 @@ public class KebunServiceImpl implements KebunService {
     public KebunResponse getKebunById(Long id) {
         Kebun kebun = findKebunOrThrow(id);
         return kebunMapper.toResponse(kebun);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public KebunDetailResponse getKebunDetail(Long id, String searchNamaSupir) {
+        Kebun kebun = findKebunOrThrow(id);
+
+        UserSummary mandor = mandorAssignmentRepository
+                .findByKebunIdAndUnassignedAtIsNull(id)
+                .flatMap(a -> userFacade.findUserSummaryById(a.getMandor().getId()))
+                .orElse(null);
+
+        List<Long> supirIds = driverAssignmentRepository
+                .findAllByKebunIdAndUnassignedAtIsNull(id).stream()
+                .map(a -> a.getDriver().getId())
+                .collect(Collectors.toList());
+
+        List<UserSummary> supirList = userFacade.findUserSummariesByIds(supirIds, searchNamaSupir);
+
+        return KebunDetailResponse.builder()
+                .id(kebun.getId())
+                .kodeKebun(kebun.getKodeKebun())
+                .namaKebun(kebun.getNamaKebun())
+                .luasHektare(kebun.getLuasHektare())
+                .koordinat(kebun.getKoordinat())
+                .createdAt(kebun.getCreatedAt())
+                .updatedAt(kebun.getUpdatedAt())
+                .mandor(mandor)
+                .supirList(supirList)
+                .build();
     }
 
     @Override

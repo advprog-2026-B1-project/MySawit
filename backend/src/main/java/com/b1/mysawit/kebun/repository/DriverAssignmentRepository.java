@@ -4,6 +4,7 @@ import com.b1.mysawit.domain.DriverAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -12,4 +13,6 @@ public interface DriverAssignmentRepository extends JpaRepository<DriverAssignme
     boolean existsByDriverIdAndUnassignedAtIsNull(Long driverId);
 
     Optional<DriverAssignment> findByDriverIdAndKebunIdAndUnassignedAtIsNull(Long driverId, Long kebunId);
+
+    List<DriverAssignment> findAllByKebunIdAndUnassignedAtIsNull(Long kebunId);
 }
