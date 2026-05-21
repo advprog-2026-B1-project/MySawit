@@ -1,7 +1,6 @@
 package com.b1.mysawit.kebun.dto;
 
 import com.b1.mysawit.auth.facade.UserSummary;
-import com.b1.mysawit.domain.Kebun;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,16 +25,4 @@ public class KebunDetailResponse {
     private OffsetDateTime updatedAt;
     private UserSummary mandor;
     private List<UserSummary> supirList;
-
-    public static KebunDetailResponse fromKebun(Kebun kebun) {
-        return KebunDetailResponse.builder()
-                .id(kebun.getId())
-                .kodeKebun(kebun.getKodeKebun())
-                .namaKebun(kebun.getNamaKebun())
-                .luasHektare(kebun.getLuasHektare())
-                .koordinat(kebun.getKoordinat())
-                .createdAt(kebun.getCreatedAt())
-                .updatedAt(kebun.getUpdatedAt())
-                .build();
-    }
 }
