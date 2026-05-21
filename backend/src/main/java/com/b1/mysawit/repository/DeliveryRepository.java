@@ -13,6 +13,10 @@ import java.util.Optional;
 
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
+    List<Delivery> findAllByDriverPayrollTriggerState(Delivery.PayrollTriggerState state);
+
+    List<Delivery> findAllByMandorPayrollTriggerState(Delivery.PayrollTriggerState state);
+
     List<Delivery> findAllByDriver_IdOrderByUpdatedAtDesc(Long driverId);
 
     List<Delivery> findAllByMandor_IdOrderByUpdatedAtDesc(Long mandorId);
