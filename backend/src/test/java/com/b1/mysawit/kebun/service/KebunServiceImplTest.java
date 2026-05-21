@@ -10,6 +10,7 @@ import com.b1.mysawit.domain.Kebun;
 import com.b1.mysawit.domain.MandorAssignment;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.kebun.dto.KebunCreateRequest;
+import com.b1.mysawit.kebun.dto.KebunDashboardItem;
 import com.b1.mysawit.kebun.dto.KebunDetailResponse;
 import com.b1.mysawit.kebun.dto.KebunKoordinatProjection;
 import com.b1.mysawit.kebun.dto.KebunResponse;
@@ -840,6 +841,61 @@ class KebunServiceImplTest {
                     .hasMessageContaining("99");
 
             verify(kebunRepository, never()).delete(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("getDashboard()")
+    class GetDashboard {
+
+        @Test
+        @DisplayName("naive=false → uses optimized single-query repository method")
+        void givenOptimizedStrategy_shouldUseOptimizedQuery() {
+            KebunDashboardItem item = KebunDashboardItem.builder()
+                    .id(1L).kodeKebun("KB-001").namaKebun("Kebun A")
+                    .luasHektare(new BigDecimal("50.0"))
+                    .countMandorAktif(1L).countSupirAktif(2L).build();
+            when(kebunRepository.findDashboardOptimized()).thenReturn(List.of(item));
+
+            List<KebunDashboardItem> result = kebunService.getDashboard(false);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getCountMandorAktif()).isEqualTo(1L);
+            assertThat(result.get(0).getCountSupirAktif()).isEqualTo(2L);
+            verify(kebunRepository, times(1)).findDashboardOptimized();
+            verify(kebunRepository, never()).findAll();
+        }
+
+        @Test
+        @DisplayName("naive=true → uses N+1 per-kebun queries")
+        void givenNaiveStrategy_shouldUsePerKebunQueries() {
+            Kebun k = new Kebun();
+            k.setId(1L);
+            k.setKodeKebun("KB-001");
+            k.setNamaKebun("Kebun A");
+            k.setLuasHektare(new BigDecimal("50.0"));
+
+            when(kebunRepository.findAll()).thenReturn(List.of(k));
+            when(mandorAssignmentRepository.countByKebunIdAndUnassignedAtIsNull(1L)).thenReturn(1L);
+            when(driverAssignmentRepository.countByKebunIdAndUnassignedAtIsNull(1L)).thenReturn(2L);
+
+            List<KebunDashboardItem> result = kebunService.getDashboard(true);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getCountMandorAktif()).isEqualTo(1L);
+            assertThat(result.get(0).getCountSupirAktif()).isEqualTo(2L);
+            verify(kebunRepository, times(1)).findAll();
+            verify(kebunRepository, never()).findDashboardOptimized();
+        }
+
+        @Test
+        @DisplayName("naive=false with empty database → returns empty list")
+        void givenEmptyDatabase_optimized_shouldReturnEmptyList() {
+            when(kebunRepository.findDashboardOptimized()).thenReturn(List.of());
+
+            List<KebunDashboardItem> result = kebunService.getDashboard(false);
+
+            assertThat(result).isEmpty();
         }
     }
 }

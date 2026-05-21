@@ -4,6 +4,7 @@ import com.b1.mysawit.auth.config.SecurityConfig;
 import com.b1.mysawit.auth.service.CustomOAuth2UserService;
 import com.b1.mysawit.auth.facade.UserSummary;
 import com.b1.mysawit.config.MethodSecurityConfig;
+import com.b1.mysawit.kebun.dto.KebunDashboardItem;
 import com.b1.mysawit.kebun.dto.KebunDetailResponse;
 import com.b1.mysawit.kebun.service.KebunService;
 import org.junit.jupiter.api.Test;
@@ -61,6 +62,32 @@ class KebunControllerTest {
                 .andExpect(jsonPath("$.kodeKebun").value("KB-001"))
                 .andExpect(jsonPath("$.mandor.nama").value("Budi Mandor"))
                 .andExpect(jsonPath("$.supirList[0].nama").value("Andi Supir"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testGetDashboard_ReturnsAggregatedCounts() throws Exception {
+        KebunDashboardItem item = KebunDashboardItem.builder()
+                .id(1L).kodeKebun("KB-001").namaKebun("Kebun Alpha")
+                .luasHektare(new BigDecimal("50.0"))
+                .countMandorAktif(1L).countSupirAktif(3L).build();
+
+        when(kebunService.getDashboard(false)).thenReturn(List.of(item));
+
+        mockMvc.perform(get("/api/kebun/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].kodeKebun").value("KB-001"))
+                .andExpect(jsonPath("$[0].countMandorAktif").value(1))
+                .andExpect(jsonPath("$[0].countSupirAktif").value(3));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testGetDashboard_NaiveStrategy() throws Exception {
+        when(kebunService.getDashboard(true)).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/kebun/dashboard?naive=true"))
+                .andExpect(status().isOk());
     }
 
     @Test
