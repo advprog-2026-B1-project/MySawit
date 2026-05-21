@@ -70,7 +70,6 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
             }
         };
         fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [kebunId, refresh, searchSupir]);
 
     const postJson = async (url: string, body: object) => {

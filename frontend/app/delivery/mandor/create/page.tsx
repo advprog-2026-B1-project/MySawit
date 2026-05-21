@@ -35,6 +35,7 @@ export default function MandorCreateDelivery() {
             });
             alert("Penugasan pengiriman berhasil dibuat!");
             router.push("/delivery/mandor");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             setError(err.message || "Gagal membuat penugasan.");
         } finally {

@@ -62,6 +62,7 @@ export default function MandorDeliveryDashboard() {
             }
 
             setDeliveries(filtered);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             setError(err.message || "Gagal memuat data.");
         } finally {
