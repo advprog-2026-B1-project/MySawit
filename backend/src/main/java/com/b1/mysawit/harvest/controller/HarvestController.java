@@ -32,31 +32,34 @@ public class HarvestController {
         // =========================================================
         // UNTUK TESTING SEMENTARA!
         // =========================================================
-//        return userRepository.findById(3L)
-//                .orElseThrow(() -> new IllegalStateException("User mock tidak ditemukan di DB"));
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalStateException("Authentication required");
-        }
 
-        Object principal = authentication.getPrincipal();
-        String email = null;
-
-        if (principal instanceof OAuth2User) {
-            email = ((OAuth2User) principal).getAttribute("email");
-        }
-        else if (principal instanceof org.springframework.security.core.userdetails.User) {
-            email = ((org.springframework.security.core.userdetails.User) principal).getUsername();
-        }
-        else if (principal instanceof String) {
-            email = (String) principal;
-        }
-
-        if (email == null) {
-            throw new IllegalStateException("Could not extract email from authentication context");
-        }
-
-        return userRepository.findByEmail(email).orElseThrow(() -> new IllegalStateException("User not found in database"));
+        // 2 = Mandor
+        // Sisanya buruh
+        return userRepository.findById(3L)
+                .orElseThrow(() -> new IllegalStateException("User mock tidak ditemukan di DB"));
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication == null || !authentication.isAuthenticated()) {
+//            throw new IllegalStateException("Authentication required");
+//        }
+//
+//        Object principal = authentication.getPrincipal();
+//        String email = null;
+//
+//        if (principal instanceof OAuth2User) {
+//            email = ((OAuth2User) principal).getAttribute("email");
+//        }
+//        else if (principal instanceof org.springframework.security.core.userdetails.User) {
+//            email = ((org.springframework.security.core.userdetails.User) principal).getUsername();
+//        }
+//        else if (principal instanceof String) {
+//            email = (String) principal;
+//        }
+//
+//        if (email == null) {
+//            throw new IllegalStateException("Could not extract email from authentication context");
+//        }
+//
+//        return userRepository.findByEmail(email).orElseThrow(() -> new IllegalStateException("User not found in database"));
     }
 
     private boolean validateUserMandor(User user) {
@@ -65,7 +68,7 @@ public class HarvestController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<HarvestResponse> submitHarvest(@ModelAttribute HarvestRequest request) {
-        User currentUser = getCurrentUser(); // Murni ambil dari token/sesi
+        User currentUser = getCurrentUser();
         HarvestResponse response = harvestService.createHarvest(currentUser, request);
         return ResponseEntity.ok(response);
     }

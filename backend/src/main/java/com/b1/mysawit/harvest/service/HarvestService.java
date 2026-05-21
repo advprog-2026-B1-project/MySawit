@@ -90,6 +90,10 @@ public class HarvestService {
     public HarvestResponse approveHarvest(Long id, User currentMandor) {
         HasilPanen panen = validateMandorAuthorization(id, currentMandor);
 
+        if (panen.getStatus() == HasilPanen.Status.Approved) {
+            throw new IllegalStateException("Hasil panen sudah di approve");
+        }
+
         panen.setStatus(HasilPanen.Status.Approved);
         return mapToResponse(hasilPanenRepository.save(panen));
     }
@@ -97,6 +101,10 @@ public class HarvestService {
     @Transactional
     public HarvestResponse rejectHarvest(Long id, String alasan, User currentMandor) {
         HasilPanen panen = validateMandorAuthorization(id, currentMandor);
+
+        if (panen.getStatus() == HasilPanen.Status.Approved) {
+            throw new IllegalStateException("Hasil panen sudah di approve");
+        }
 
         panen.setStatus(HasilPanen.Status.Rejected);
         panen.setRejectionReason(alasan);
@@ -125,7 +133,9 @@ public class HarvestService {
             statusEnum = HasilPanen.Status.valueOf(statusStr);
         }
 
-        return hasilPanenRepository.findForMandorWithFilters(currentMandor.getId(), startDate, endDate, statusEnum, workerName)
+        String finalWorkerName = (workerName != null && !workerName.isBlank()) ? workerName : "";
+
+        return hasilPanenRepository.findForMandorWithFilters(currentMandor.getId(), startDate, endDate, statusEnum, finalWorkerName)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -145,6 +155,7 @@ public class HarvestService {
                 .status(panen.getStatus().name())
                 .rejectionReason(panen.getRejectionReason())
                 .fotoUrls(urls)
+                .namaBuruh(panen.getWorker() != null ? panen.getWorker().getNama() : null)
                 .build();
     }
 }

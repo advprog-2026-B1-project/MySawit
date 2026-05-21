@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mysawit}
+    username: ${DB_USERNAME:mysawit}
+    password: ${DB_PASSWORD:penyakitsawitgila}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -21,6 +21,6 @@ spring:
             scope: email, profile
 
 supabase:
-  url: ${SUPABASE_URL}
-  key: ${SUPABASE_KEY}
-  bucket: images
+  url: ${SUPABASE_URL:http://localhost-dummy}
+  key: ${SUPABASE_KEY:dummy-key-untuk-test}
+  bucket: ${SUPABASE_BUCKET:images}

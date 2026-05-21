@@ -92,7 +92,7 @@ class HarvestServiceTest {
         mockWorkerAssignment();
 
         User wrongMandor = new User();
-        wrongMandor.setId(99L); // ID mandor lain
+        wrongMandor.setId(99L);
         wrongMandor.setRole(User.Role.Mandor);
 
         IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
@@ -103,7 +103,6 @@ class HarvestServiceTest {
 
     @Test
     void getMyHarvestHistory_WithValidStatus_ParsesStatusEnum() {
-        // Menguji percabangan if (statusStr != null && !statusStr.isBlank())
         when(hasilPanenRepository.findByWorkerIdWithFilters(eq(dummyWorker.getId()), isNull(), isNull(), eq(HasilPanen.Status.Pending)))
                 .thenReturn(List.of(dummyPanen));
         when(fotoHasilPanenRepository.findAllByHasilPanen_Id(100L)).thenReturn(List.of());

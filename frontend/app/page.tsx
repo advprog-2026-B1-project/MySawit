@@ -7,10 +7,10 @@ export default function Home() {
         <p className="text-gray-600 mb-8">Platform Manajemen Kebun Sawit Terintegrasi</p>
 
         <div className="flex gap-4">
-          <Link href="/buruh/lapor" className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+          <Link href="harvest/buruh/lapor" className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
             Masuk sebagai Buruh
           </Link>
-          <Link href="/mandor" className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <Link href="harvest/mandor" className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
             Masuk sebagai Mandor
           </Link>
         </div>
