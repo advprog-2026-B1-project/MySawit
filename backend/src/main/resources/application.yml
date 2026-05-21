@@ -1,15 +1,23 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/mysawit}
-    username: ${DB_USERNAME:mysawit}
-    password: ${DB_PASSWORD:penyakitsawitgila}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
+        format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
   security:
     oauth2:
@@ -21,6 +29,6 @@ spring:
             scope: email, profile
 
 supabase:
-  url: ${SUPABASE_URL:http://localhost-dummy}
-  key: ${SUPABASE_KEY:dummy-key-untuk-test}
-  bucket: ${SUPABASE_BUCKET:images}
+  url: ${SUPABASE_URL}
+  key: ${SUPABASE_KEY}
+  bucket: ${SUPABASE_BUCKET}
