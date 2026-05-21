@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 
 export default function LaporPanenBuruh() {
     const [kilogram, setKilogram] = useState("");
@@ -79,7 +80,16 @@ export default function LaporPanenBuruh() {
 
     return (
         <div className="p-6 max-w-2xl mx-auto text-gray-800">
-            <h1 className="text-2xl font-bold mb-6 text-gray-900">Form Laporan Hasil Panen</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Form Laporan Hasil Panen</h1>
+
+                <Link
+                    href="/harvest/buruh/riwayat"
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-2 px-4 rounded-md transition-colors"
+                >
+                    Lihat Riwayat
+                </Link>
+            </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 bg-white p-6 shadow-sm rounded-lg border border-gray-200">
 

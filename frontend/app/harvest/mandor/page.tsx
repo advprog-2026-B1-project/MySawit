@@ -48,7 +48,6 @@ export default function MandorDashboard() {
         };
 
         fetchData();
-        // eslint-disable-next-line react-hooks/set-state-in-effect
     }, [startDate, endDate, statusFilter, searchNama, refreshTrigger]);
 
     const handleApprove = async (id: number) => {
@@ -188,7 +187,7 @@ export default function MandorDashboard() {
 
             {/* Modal Reject Standar Tailwind (Render Conditional) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
                         <h3 className="text-lg font-bold text-gray-900 mb-2">Tolak Hasil Panen</h3>
                         <p className="text-sm text-gray-600 mb-4">Silakan masukkan alasan penolakan hasil panen ini:</p>
