@@ -61,7 +61,6 @@ export default function MandorDashboard() {
         };
 
         fetchData();
-        // eslint-disable-next-line react-hooks/set-state-in-effect
     }, [startDate, endDate, statusFilter, searchNama, refreshTrigger]);
 
     const handleApprove = async (id: number) => {
@@ -227,19 +226,20 @@ export default function MandorDashboard() {
 
             {/* Reject modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div
-                        className="absolute inset-0 bg-ink/80 backdrop-blur-sm"
-                        onClick={() => setIsModalOpen(false)}
-                    />
-                    <div className="relative bg-ink-muted border border-white/10 rounded-lg w-full max-w-md shadow-2xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Tolak Hasil Panen</h3>
+                        <p className="text-sm text-gray-600 mb-4">Silakan masukkan alasan penolakan hasil panen ini:</p>
 
-                        {/* Modal header */}
-                        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
-                            <div>
-                                <h3 className="text-sm font-semibold text-bone">Tolak Hasil Panen</h3>
-                                <p className="text-xs text-bone/40 mt-0.5">ID #{selectedHarvestId}</p>
-                            </div>
+                        <textarea
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                            placeholder="Contoh: Buah masih mentah..."
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            rows={3}
+                        ></textarea>
+
+                        <div className="flex justify-end gap-3 mt-6">
                             <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="text-bone/30 hover:text-bone transition text-lg leading-none"

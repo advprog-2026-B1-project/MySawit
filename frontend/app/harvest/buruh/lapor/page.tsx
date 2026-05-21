@@ -81,7 +81,34 @@ export default function LaporPanenBuruh() {
     const inputCls = "w-full bg-ink border border-white/10 text-bone text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none placeholder:text-bone/30 transition";
 
     return (
-        <div className="px-8 py-6 max-w-2xl">
+        <div className="p-6 max-w-2xl mx-auto text-gray-800">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Form Laporan Hasil Panen</h1>
+
+                <Link
+                    href="/harvest/buruh/riwayat"
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-2 px-4 rounded-md transition-colors"
+                >
+                    Lihat Riwayat
+                </Link>
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5 bg-white p-6 shadow-sm rounded-lg border border-gray-200">
+
+                {/* Input Kilogram */}
+                <div className="flex flex-col gap-2">
+                    <label className="font-semibold text-sm text-gray-700">Kilogram Panen</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                        placeholder="Contoh: 150.5"
+                        value={kilogram}
+                        onChange={(e) => setKilogram(e.target.value)}
+                        required
+                        disabled={isLoading}
+                    />
+                </div>
 
             {/* Page header */}
             <div className="flex items-start justify-between mb-8">

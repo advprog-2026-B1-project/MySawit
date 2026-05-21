@@ -32,6 +32,9 @@ public class HarvestController {
         // =========================================================
         // UNTUK TESTING SEMENTARA!
         // =========================================================
+
+        // 2 = Mandor
+        // Sisanya buruh
 //        return userRepository.findById(3L)
 //                .orElseThrow(() -> new IllegalStateException("User mock tidak ditemukan di DB"));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -65,7 +68,7 @@ public class HarvestController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<HarvestResponse> submitHarvest(@ModelAttribute HarvestRequest request) {
-        User currentUser = getCurrentUser(); // Murni ambil dari token/sesi
+        User currentUser = getCurrentUser();
         HarvestResponse response = harvestService.createHarvest(currentUser, request);
         return ResponseEntity.ok(response);
     }

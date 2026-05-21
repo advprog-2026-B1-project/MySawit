@@ -13,13 +13,13 @@ import java.util.UUID;
 @Service
 public class SupabaseService {
 
-    @Value("${supabase.url}")
+    @Value("${supabase.url:http://localhost-dummy}")
     private String supabaseUrl;
 
-    @Value("${supabase.key}")
+    @Value("${supabase.key:dummy-key-untuk-test}")
     private String supabaseKey;
 
-    @Value("${supabase.bucket}")
+    @Value("${supabase.bucket:dummy-bucket}")
     private String bucketName;
 
 

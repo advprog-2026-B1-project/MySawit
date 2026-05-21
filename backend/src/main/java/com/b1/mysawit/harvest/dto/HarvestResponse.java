@@ -16,4 +16,5 @@ public class HarvestResponse {
     private String status;
     private List<String> fotoUrls;
     private String rejectionReason;
+    private String namaBuruh;
 }

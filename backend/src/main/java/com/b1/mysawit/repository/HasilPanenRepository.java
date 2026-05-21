@@ -31,7 +31,7 @@ public interface HasilPanenRepository extends JpaRepository<HasilPanen, Long> {
             "AND (CAST(:startDate AS date) IS NULL OR h.tanggalPanen >= :startDate) " +
             "AND (CAST(:endDate AS date) IS NULL OR h.tanggalPanen <= :endDate) " +
             "AND (:status IS NULL OR h.status = :status) " +
-            "AND (CAST(:workerName AS string) IS NULL OR LOWER(h.worker.nama) LIKE LOWER(CONCAT('%', CAST(:workerName AS string), '%'))) " +
+            "AND (:workerName = '' OR LOWER(h.worker.nama) LIKE LOWER(CONCAT('%', :workerName, '%'))) " +
             "ORDER BY h.tanggalPanen DESC")
     List<HasilPanen> findForMandorWithFilters(
             @Param("mandorId") Long mandorId,
