@@ -22,6 +22,8 @@ import com.b1.mysawit.auth.service.AuthService;
 import com.b1.mysawit.auth.service.CustomOAuth2UserService;
 import com.b1.mysawit.auth.service.UserService;
 import com.b1.mysawit.domain.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 
 @WebMvcTest(controllers = AppController.class)
 @Import(SecurityConfig.class)
@@ -36,8 +38,11 @@ public class MySawitAuthTests {
     @MockitoBean
     private UserService userService;
 
-    @MockitoBean 
+    @MockitoBean
     private CustomOAuth2UserService customOAuth2UserService;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     @Test
     void testRegisterSuccess() throws Exception {
@@ -65,6 +70,7 @@ public class MySawitAuthTests {
     }
 
     @Test
+    @WithMockUser(authorities = "Admin")
     void testAdminUpdateUser() throws Exception {
         User updatedUser = new User();
         updatedUser.setId(2L);
@@ -90,6 +96,7 @@ public class MySawitAuthTests {
     }
 
     @Test
+    @WithMockUser(authorities = "Admin")
     void testAssignWorkerToMandor() throws Exception {
         // Asumsikan UserService.assignWorkerToMandor mengembalikan object WorkerAssignment atau void
         
@@ -119,6 +126,7 @@ public class MySawitAuthTests {
     }
     
     @Test
+    @WithMockUser(authorities = "Admin")
     public void testAdminCannotDeleteThemself() throws Exception {
         Mockito.doThrow(new IllegalArgumentException("Admin Utama tidak dapat menghapus dirinya sendiri"))
                .when(userService).deleteUser(1L, 1L);

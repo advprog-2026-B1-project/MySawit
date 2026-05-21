@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,6 +28,7 @@ class AppControllerTest {
     @MockitoBean private AuthService authService;
     @MockitoBean private UserService userService;
     @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
+    @MockitoBean private UserDetailsService userDetailsService;
 
     @Test
     void testLogin_Success() throws Exception {
