@@ -18,6 +18,29 @@ interface FieldError {
     [key: string]: string;
 }
 
+function Field({
+    label,
+    error,
+    hint,
+    children,
+}: {
+    label: string;
+    error?: string;
+    hint?: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <div>
+            <label className="block text-xs font-semibold text-bone/40 uppercase tracking-wider mb-1.5">
+                {label}
+            </label>
+            {children}
+            {hint && !error && <p className="mt-1.5 text-xs text-bone/25">{hint}</p>}
+            {error && <p className="mt-1.5 text-xs text-red-400">{error}</p>}
+        </div>
+    );
+}
+
 export default function KebunEditPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
@@ -113,97 +136,112 @@ export default function KebunEditPage({ params }: { params: Promise<{ id: string
         }
     };
 
-    if (fetching) return <div className="p-8 text-center text-gray-400">Memuat data kebun...</div>;
+    const inputCls = (field: string) =>
+        `w-full bg-ink border ${fieldErrors[field] ? "border-red-500/50" : "border-white/10"} text-bone text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none placeholder:text-bone/30 transition`;
+
+    if (fetching) {
+        return (
+            <div className="px-8 py-6 max-w-2xl">
+                <div className="h-4 w-48 bg-white/5 rounded animate-pulse mb-8" />
+                <div className="h-64 bg-white/5 rounded-lg animate-pulse" />
+            </div>
+        );
+    }
 
     return (
-        <div className="p-6 max-w-2xl mx-auto text-gray-800">
-            <div className="flex items-center gap-2 mb-6">
-                <Link href={`/kebun/${id}`} className="text-sm text-green-600 hover:underline">← Kembali ke Detail Kebun</Link>
+        <div className="px-8 py-6 max-w-2xl">
+
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-2 text-sm mb-6">
+                <Link href="/kebun" className="text-bone/40 hover:text-bone transition">Daftar Kebun</Link>
+                <span className="text-bone/20">/</span>
+                <Link href={`/kebun/${id}`} className="text-bone/40 hover:text-bone transition">Detail</Link>
+                <span className="text-bone/20">/</span>
+                <span className="text-bone/70">Edit</span>
             </div>
 
-            <h1 className="text-2xl font-bold text-green-700 mb-6">Edit Kebun</h1>
+            {/* Page header */}
+            <div className="mb-7">
+                <h1 className="text-xl font-semibold text-bone">Edit Kebun</h1>
+                <p className="text-sm text-bone/40 mt-1">
+                    Mengedit <span className="font-mono text-bone/60">{kodeKebun}</span> — kode tidak dapat diubah.
+                </p>
+            </div>
 
+            {/* Global error */}
             {error && (
-                <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
                     {error}
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-5">
-                {/* Kode Kebun — read only */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Kode Kebun</label>
-                    <input
-                        type="text"
-                        value={kodeKebun}
-                        readOnly
-                        className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed font-mono"
-                    />
-                    <p className="mt-1 text-xs text-gray-400">Kode kebun tidak dapat diubah setelah dibuat.</p>
-                </div>
+            {/* Form card */}
+            <form onSubmit={handleSubmit} className="bg-ink-muted border border-white/10 rounded-lg divide-y divide-white/5">
 
-                {/* Nama Kebun */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nama Kebun</label>
-                    <input
-                        type="text"
-                        name="namaKebun"
-                        value={form.namaKebun}
-                        onChange={handleChange}
-                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                            fieldErrors.namaKebun ? "border-red-400 bg-red-50" : "border-gray-300"
-                        }`}
-                    />
-                    {fieldErrors.namaKebun && <p className="mt-1 text-xs text-red-600">{fieldErrors.namaKebun}</p>}
-                </div>
+                {/* Fields */}
+                <div className="px-6 py-5 space-y-5">
 
-                {/* Luas Hektare */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Luas (Hektare)</label>
-                    <input
-                        type="number"
-                        name="luasHektare"
-                        value={form.luasHektare}
-                        onChange={handleChange}
-                        step="0.01"
-                        min="0.01"
-                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                            fieldErrors.luasHektare ? "border-red-400 bg-red-50" : "border-gray-300"
-                        }`}
-                    />
-                    {fieldErrors.luasHektare && <p className="mt-1 text-xs text-red-600">{fieldErrors.luasHektare}</p>}
-                </div>
+                    {/* Kode — read only, displayed as metadata */}
+                    <div className="flex items-center gap-3 px-3 py-2.5 bg-ink rounded-md border border-white/5">
+                        <span className="text-xs text-bone/30 uppercase tracking-wider">Kode</span>
+                        <span className="font-mono text-sm text-bone/50">{kodeKebun}</span>
+                        <span className="ml-auto text-xs text-bone/20">Tidak dapat diubah</span>
+                    </div>
 
-                {/* Koordinat */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Koordinat</label>
-                    <textarea
-                        name="koordinat"
-                        value={form.koordinat}
-                        onChange={handleChange}
-                        rows={3}
-                        className={`w-full border rounded-md px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 resize-none ${
-                            fieldErrors.koordinat ? "border-red-400 bg-red-50" : "border-gray-300"
-                        }`}
-                    />
-                    <p className="mt-1 text-xs text-gray-400">Format: [(lat,lon),(lat,lon),(lat,lon),(lat,lon)]</p>
-                    {fieldErrors.koordinat && <p className="mt-1 text-xs text-red-600">{fieldErrors.koordinat}</p>}
-                </div>
+                    <div className="grid grid-cols-2 gap-5">
+                        <Field label="Nama Kebun" error={fieldErrors.namaKebun}>
+                            <input
+                                type="text"
+                                name="namaKebun"
+                                value={form.namaKebun}
+                                onChange={handleChange}
+                                className={inputCls("namaKebun")}
+                            />
+                        </Field>
 
-                <div className="flex gap-3 pt-2">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        <Field label="Luas (Hektare)" error={fieldErrors.luasHektare}>
+                            <input
+                                type="number"
+                                name="luasHektare"
+                                value={form.luasHektare}
+                                onChange={handleChange}
+                                step="0.01"
+                                min="0.01"
+                                className={inputCls("luasHektare")}
+                            />
+                        </Field>
+                    </div>
+
+                    <Field
+                        label="Koordinat"
+                        error={fieldErrors.koordinat}
+                        hint="Format: [(lat,lon),(lat,lon),(lat,lon),(lat,lon)]"
                     >
-                        {loading ? "Menyimpan..." : "Simpan Perubahan"}
-                    </button>
+                        <textarea
+                            name="koordinat"
+                            value={form.koordinat}
+                            onChange={handleChange}
+                            rows={3}
+                            className={`${inputCls("koordinat")} font-mono resize-none`}
+                        />
+                    </Field>
+                </div>
+
+                {/* Footer actions */}
+                <div className="px-6 py-4 flex items-center justify-between bg-ink-soft rounded-b-lg">
                     <Link
                         href={`/kebun/${id}`}
-                        className="px-6 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-300 transition"
+                        className="text-sm text-bone/40 hover:text-bone transition"
                     >
                         Batal
                     </Link>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-5 py-2 bg-verdant text-ink text-sm font-semibold rounded-md hover:bg-verdant-hover disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    >
+                        {loading ? "Menyimpan..." : "Simpan Perubahan"}
+                    </button>
                 </div>
             </form>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 interface Harvest {
     id: number;
@@ -12,15 +13,26 @@ interface Harvest {
     rejectionReason: string;
 }
 
+function StatusBadge({ status }: { status: string }) {
+    const cls =
+        status === 'Approved' ? 'bg-verdant-soft text-verdant' :
+        status === 'Rejected' ? 'bg-red-500/10 text-red-400' :
+        'bg-white/5 text-bone/50';
+    return (
+        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
+            {status}
+        </span>
+    );
+}
+
+const inputCls = "bg-ink border border-white/10 text-bone text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none transition";
+
 export default function RiwayatPanenBuruh() {
     const [harvests, setHarvests] = useState<Harvest[]>([]);
-
-    // State untuk Filter (Memenuhi Checklist 1)
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
 
-    // Integrasi API (Memenuhi Checklist 2)
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -29,7 +41,6 @@ export default function RiwayatPanenBuruh() {
                 if (endDate) queryParams.append("endDate", endDate);
                 if (statusFilter) queryParams.append("status", statusFilter);
 
-                // Memanggil API /me (Hanya data milik buruh yang sedang login/dummy auth)
                 const response = await fetch(`http://localhost:8080/api/harvest/me?${queryParams.toString()}`);
 
                 if (response.ok) {
@@ -47,32 +58,39 @@ export default function RiwayatPanenBuruh() {
     }, [startDate, endDate, statusFilter]);
 
     return (
-        <div className="p-6 max-w-5xl mx-auto text-gray-800">
-            <h1 className="text-2xl font-bold mb-6 text-gray-900">Riwayat Panen Saya</h1>
+        <div className="px-8 py-6 max-w-5xl">
 
-            {/* Filter UI Standar Tailwind */}
-            <div className="flex flex-wrap gap-4 mb-6 bg-gray-100 p-4 rounded-lg border border-gray-200">
-
-                {/* Datepicker Rentang Tanggal */}
-                <div className="flex items-center gap-2">
-                    <input
-                        type="date"
-                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                    />
-                    <span className="font-bold text-gray-500">-</span>
-                    <input
-                        type="date"
-                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                    />
+            {/* Page header */}
+            <div className="flex items-start justify-between mb-8">
+                <div>
+                    <h1 className="text-xl font-semibold text-bone">Riwayat Panen Saya</h1>
+                    <p className="text-sm text-bone/40 mt-1">Semua laporan panen yang pernah kamu kirim</p>
                 </div>
+                <Link
+                    href="/harvest/buruh/lapor"
+                    className="px-4 py-2 bg-verdant text-ink text-sm font-semibold rounded-md hover:bg-verdant-hover transition shrink-0"
+                >
+                    + Lapor Panen
+                </Link>
+            </div>
 
-                {/* Dropdown Status */}
+            {/* Filter bar */}
+            <div className="flex flex-wrap items-center gap-3 mb-5">
+                <input
+                    type="date"
+                    className={inputCls}
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                />
+                <span className="text-bone/20 text-sm">→</span>
+                <input
+                    type="date"
+                    className={inputCls}
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                />
                 <select
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    className={`${inputCls} min-w-[140px]`}
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -81,56 +99,59 @@ export default function RiwayatPanenBuruh() {
                     <option value="Approved">Approved</option>
                     <option value="Rejected">Rejected</option>
                 </select>
+                {(startDate || endDate || statusFilter) && (
+                    <button
+                        onClick={() => { setStartDate(""); setEndDate(""); setStatusFilter(""); }}
+                        className="text-xs text-bone/40 hover:text-bone transition px-2"
+                    >
+                        Reset
+                    </button>
+                )}
             </div>
 
-            {/* Tabel Standar Tailwind */}
-            <div className="overflow-x-auto bg-white shadow-sm rounded-lg border border-gray-200">
-                <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
-                    <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-6 py-3 font-semibold text-gray-600">Tanggal</th>
-                        <th className="px-6 py-3 font-semibold text-gray-600">Kilogram (Kg)</th>
-                        <th className="px-6 py-3 font-semibold text-gray-600">Berita</th>
-                        <th className="px-6 py-3 font-semibold text-gray-600">Status</th>
-                        <th className="px-6 py-3 font-semibold text-gray-600">Catatan Mandor</th>
-                    </tr>
+            {/* Table */}
+            <div className="rounded-lg border border-white/10 overflow-hidden">
+                <table className="min-w-full text-sm text-left">
+                    <thead>
+                        <tr className="bg-ink-soft border-b border-white/10">
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Tanggal</th>
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Kilogram</th>
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Berita</th>
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Status</th>
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Catatan Mandor</th>
+                        </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
-                    {harvests.length > 0 ? (
-                        harvests.map((panen) => (
-                            <tr key={panen.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">{panen.tanggalPanen}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{panen.kilogram}</td>
-                                {/* Potong teks jika berita terlalu panjang */}
-                                <td className="px-6 py-4 max-w-xs truncate" title={panen.berita}>
-                                    {panen.berita || "-"}
-                                </td>
-
-                                {/* Validasi Badge Status (Memenuhi Checklist 3) */}
-                                <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        panen.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                            panen.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {panen.status}
-                    </span>
-                                </td>
-
-                                {/* Menampilkan Alasan Penolakan dari Mandor */}
-                                <td className="px-6 py-4 text-red-600 text-sm max-w-xs truncate" title={panen.rejectionReason}>
-                                    {panen.rejectionReason || "-"}
+                    <tbody className="bg-ink-muted divide-y divide-white/5">
+                        {harvests.length > 0 ? (
+                            harvests.map((panen, i) => (
+                                <tr key={panen.id} className={`hover:bg-white/5 transition ${i % 2 === 1 ? "bg-white/[0.02]" : ""}`}>
+                                    <td className="px-5 py-3.5 text-bone/70 whitespace-nowrap">{panen.tanggalPanen}</td>
+                                    <td className="px-5 py-3.5 text-bone font-medium whitespace-nowrap">{panen.kilogram} kg</td>
+                                    <td className="px-5 py-3.5 text-bone/60 max-w-[200px] truncate" title={panen.berita}>
+                                        {panen.berita || "-"}
+                                    </td>
+                                    <td className="px-5 py-3.5 whitespace-nowrap">
+                                        <StatusBadge status={panen.status} />
+                                    </td>
+                                    <td className="px-5 py-3.5 text-red-400/70 text-xs max-w-[180px] truncate" title={panen.rejectionReason}>
+                                        {panen.rejectionReason || <span className="text-bone/20">—</span>}
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={5} className="px-5 py-12 text-center text-bone/30 text-sm">
+                                    Belum ada riwayat panen sesuai filter.
                                 </td>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                                Belum ada riwayat panen sesuai filter.
-                            </td>
-                        </tr>
-                    )}
+                        )}
                     </tbody>
                 </table>
+                {harvests.length > 0 && (
+                    <div className="px-5 py-3 bg-ink-soft border-t border-white/10">
+                        <span className="text-xs text-bone/30">{harvests.length} entri</span>
+                    </div>
+                )}
             </div>
         </div>
     );

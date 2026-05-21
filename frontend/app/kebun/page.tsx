@@ -13,14 +13,6 @@ interface Kebun {
     koordinat: string;
 }
 
-function ErrorBanner({ message }: { message: string }) {
-    return (
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-            {message}
-        </div>
-    );
-}
-
 export default function KebunListPage() {
     const [kebunList, setKebunList] = useState<Kebun[]>([]);
     const [searchNama, setSearchNama] = useState("");
@@ -89,90 +81,130 @@ export default function KebunListPage() {
     void deleteId;
 
     return (
-        <div className="p-6 max-w-6xl mx-auto text-gray-800">
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-green-700">Manajemen Kebun Sawit</h1>
+        <div className="px-8 py-6 max-w-5xl">
+
+            {/* Page header */}
+            <div className="flex items-start justify-between mb-8">
+                <div>
+                    <h1 className="text-xl font-semibold text-bone">Daftar Kebun</h1>
+                    <p className="text-sm text-bone/40 mt-1">Kelola seluruh unit kebun sawit</p>
+                </div>
                 <Link
                     href="/kebun/baru"
-                    className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"
+                    className="px-4 py-2 bg-verdant text-ink text-sm font-semibold rounded-md hover:bg-verdant-hover transition shrink-0"
                 >
                     + Tambah Kebun
                 </Link>
             </div>
 
-            {/* Filter */}
-            <div className="flex flex-wrap gap-3 mb-5 bg-gray-100 p-4 rounded-lg border border-gray-200">
-                <input
-                    type="text"
-                    placeholder="Cari nama kebun..."
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-green-500"
-                    value={searchNama}
-                    onChange={e => setSearchNama(e.target.value)}
-                />
-                <input
-                    type="text"
-                    placeholder="Cari kode kebun..."
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-green-500"
-                    value={searchKode}
-                    onChange={e => setSearchKode(e.target.value)}
-                />
+            {/* Error */}
+            {error && (
+                <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                    {error}
+                </div>
+            )}
+
+            {/* Search bar */}
+            <div className="flex gap-3 mb-5">
+                <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-bone/30 text-sm">⌕</span>
+                    <input
+                        type="text"
+                        placeholder="Cari nama kebun..."
+                        className="bg-ink-muted border border-white/10 text-bone text-sm rounded-md pl-8 pr-3 py-2 w-56 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none placeholder:text-bone/30 transition"
+                        value={searchNama}
+                        onChange={e => setSearchNama(e.target.value)}
+                    />
+                </div>
+                <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-bone/30 text-sm">⌕</span>
+                    <input
+                        type="text"
+                        placeholder="Cari kode kebun..."
+                        className="bg-ink-muted border border-white/10 text-bone text-sm rounded-md pl-8 pr-3 py-2 w-48 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none placeholder:text-bone/30 transition"
+                        value={searchKode}
+                        onChange={e => setSearchKode(e.target.value)}
+                    />
+                </div>
+                {(searchNama || searchKode) && (
+                    <button
+                        onClick={() => { setSearchNama(""); setSearchKode(""); }}
+                        className="text-xs text-bone/40 hover:text-bone transition px-2"
+                    >
+                        Reset
+                    </button>
+                )}
             </div>
 
-            {error && <ErrorBanner message={error} />}
-
-            {/* Tabel */}
-            <div className="overflow-x-auto bg-white shadow-sm rounded-lg border border-gray-200">
-                <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-5 py-3 font-semibold text-gray-600">Kode</th>
-                            <th className="px-5 py-3 font-semibold text-gray-600">Nama Kebun</th>
-                            <th className="px-5 py-3 font-semibold text-gray-600">Luas (Ha)</th>
-                            <th className="px-5 py-3 font-semibold text-gray-600">Koordinat</th>
-                            <th className="px-5 py-3 font-semibold text-gray-600">Aksi</th>
+            {/* Table */}
+            <div className="rounded-lg border border-white/10 overflow-hidden">
+                <table className="min-w-full text-sm text-left">
+                    <thead>
+                        <tr className="bg-ink-soft border-b border-white/10">
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Kode</th>
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Nama Kebun</th>
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Luas (Ha)</th>
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Koordinat</th>
+                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="bg-ink-muted divide-y divide-white/5">
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="px-5 py-8 text-center text-gray-400">Memuat data...</td>
+                                <td colSpan={5} className="px-5 py-12 text-center text-bone/30 text-sm">
+                                    Memuat data...
+                                </td>
                             </tr>
                         ) : kebunList.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-5 py-8 text-center text-gray-400">Tidak ada kebun ditemukan.</td>
+                                <td colSpan={5} className="px-5 py-12 text-center text-bone/30 text-sm">
+                                    Tidak ada kebun ditemukan.
+                                </td>
                             </tr>
                         ) : (
-                            kebunList.map(kebun => (
-                                <tr key={kebun.id} className="hover:bg-gray-50">
-                                    <td className="px-5 py-4 font-mono text-xs">{kebun.kodeKebun}</td>
-                                    <td className="px-5 py-4 font-medium">{kebun.namaKebun}</td>
-                                    <td className="px-5 py-4">{kebun.luasHektare}</td>
-                                    <td className="px-5 py-4 text-xs text-gray-500 max-w-xs truncate">{kebun.koordinat}</td>
-                                    <td className="px-5 py-4 flex gap-2">
-                                        <Link
-                                            href={`/kebun/${kebun.id}`}
-                                            className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition"
-                                        >
-                                            Detail
-                                        </Link>
-                                        <Link
-                                            href={`/kebun/${kebun.id}/edit`}
-                                            className="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition"
-                                        >
-                                            Edit
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(kebun.id)}
-                                            className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition"
-                                        >
-                                            Hapus
-                                        </button>
+                            kebunList.map((kebun, i) => (
+                                <tr
+                                    key={kebun.id}
+                                    className={`hover:bg-white/5 transition ${i % 2 === 1 ? "bg-white/[0.02]" : ""}`}
+                                >
+                                    <td className="px-5 py-3.5 font-mono text-xs text-bone/50">{kebun.kodeKebun}</td>
+                                    <td className="px-5 py-3.5 font-medium text-bone">{kebun.namaKebun}</td>
+                                    <td className="px-5 py-3.5 text-bone/70">{kebun.luasHektare} ha</td>
+                                    <td className="px-5 py-3.5 text-xs text-bone/40 max-w-[180px] truncate">{kebun.koordinat}</td>
+                                    <td className="px-5 py-3.5">
+                                        <div className="flex items-center gap-2">
+                                            <Link
+                                                href={`/kebun/${kebun.id}`}
+                                                className="px-2.5 py-1 text-xs border border-verdant/30 text-verdant rounded hover:bg-verdant-soft transition"
+                                            >
+                                                Detail
+                                            </Link>
+                                            <Link
+                                                href={`/kebun/${kebun.id}/edit`}
+                                                className="px-2.5 py-1 text-xs border border-white/10 text-bone/60 rounded hover:border-white/20 hover:text-bone transition"
+                                            >
+                                                Edit
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDelete(kebun.id)}
+                                                className="px-2.5 py-1 text-xs text-red-400/70 hover:text-red-400 transition"
+                                            >
+                                                Hapus
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
+
+                {/* Table footer */}
+                {kebunList.length > 0 && (
+                    <div className="px-5 py-3 bg-ink-soft border-t border-white/10">
+                        <span className="text-xs text-bone/30">{kebunList.length} kebun ditemukan</span>
+                    </div>
+                )}
             </div>
         </div>
     );
