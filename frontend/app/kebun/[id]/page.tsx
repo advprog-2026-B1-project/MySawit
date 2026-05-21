@@ -24,20 +24,8 @@ interface Assignment {
     supirList: UserSummary[];
 }
 
-function ErrorBanner({ message }: { message: string }) {
-    return (
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-            {message}
-        </div>
-    );
-}
-
-function SuccessBanner({ message }: { message: string }) {
-    return (
-        <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
-            {message}
-        </div>
-    );
+function inputCls(hasError = false) {
+    return `w-full bg-ink border ${hasError ? "border-red-500/50" : "border-white/10"} text-bone text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none placeholder:text-bone/30 transition`;
 }
 
 export default function KebunDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -51,17 +39,14 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
     const [loading, setLoading] = useState(true);
     const [refresh, setRefresh] = useState(0);
 
-    // Assign mandor state
     const [showAssignMandor, setShowAssignMandor] = useState(false);
     const [mandorId, setMandorId] = useState("");
     const [newKebunMandorId, setNewKebunMandorId] = useState("");
 
-    // Assign supir state
     const [showAssignSupir, setShowAssignSupir] = useState(false);
     const [supirId, setSupirId] = useState("");
     const [newKebunSupirId, setNewKebunSupirId] = useState("");
 
-    // Search supir
     const [searchSupir, setSearchSupir] = useState("");
 
     useEffect(() => {
@@ -74,11 +59,6 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
                 if (kebunRes.status === 404) { setError("Kebun tidak ditemukan."); return; }
                 if (!kebunRes.ok) { setError(`Error ${kebunRes.status}`); return; }
                 setKebun(await kebunRes.json());
-
-                // Assignment info — gunakan endpoint detail yang tersedia
-                // Backend saat ini mengembalikan KebunResponse (belum ada KebunDetailResponse)
-                // Data mandor & supir diambil dari mandor_assignment & driver_assignment
-                // endpoint terpisah jika ada, atau tampilkan placeholder
             } catch {
                 setError("Tidak dapat terhubung ke server.");
             } finally {
@@ -168,76 +148,105 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
         s.nama.toLowerCase().includes(searchSupir.toLowerCase())
     );
 
-    if (loading) return <div className="p-8 text-center text-gray-400">Memuat data kebun...</div>;
+    if (loading) {
+        return (
+            <div className="px-8 py-6">
+                <div className="h-4 w-32 bg-white/5 rounded animate-pulse mb-8" />
+                <div className="h-40 bg-white/5 rounded-lg animate-pulse mb-4" />
+                <div className="h-32 bg-white/5 rounded-lg animate-pulse" />
+            </div>
+        );
+    }
 
     return (
-        <div className="p-6 max-w-4xl mx-auto text-gray-800">
-            <div className="flex items-center gap-2 mb-6">
-                <Link href="/kebun" className="text-sm text-green-600 hover:underline">← Kembali ke Daftar Kebun</Link>
+        <div className="px-8 py-6 max-w-3xl">
+
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-2 text-sm mb-6">
+                <Link href="/kebun" className="text-bone/40 hover:text-bone transition">Daftar Kebun</Link>
+                <span className="text-bone/20">/</span>
+                <span className="text-bone/70">{kebun?.namaKebun ?? "Detail"}</span>
             </div>
 
-            {error && <ErrorBanner message={error} />}
-            {success && <SuccessBanner message={success} />}
+            {/* Alerts */}
+            {error && (
+                <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div className="mb-5 px-4 py-3 bg-verdant-soft border border-verdant/20 rounded-lg text-sm text-verdant">
+                    {success}
+                </div>
+            )}
 
-            {/* Info Kebun */}
+            {/* Kebun info card */}
             {kebun && (
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
-                    <div className="flex items-start justify-between mb-4">
-                        <h1 className="text-2xl font-bold text-green-700">{kebun.namaKebun}</h1>
+                <div className="bg-ink-muted border border-white/10 rounded-lg p-6 mb-4">
+                    <div className="flex items-start justify-between mb-5">
+                        <div>
+                            <p className="text-xs font-semibold text-bone/30 uppercase tracking-wider mb-1">
+                                {kebun.kodeKebun}
+                            </p>
+                            <h1 className="text-xl font-semibold text-bone">{kebun.namaKebun}</h1>
+                        </div>
                         <Link
                             href={`/kebun/${kebun.id}/edit`}
-                            className="px-3 py-1.5 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition"
+                            className="px-3 py-1.5 text-xs border border-white/10 text-bone/60 rounded-md hover:border-white/20 hover:text-bone transition"
                         >
-                            Edit Kebun
+                            Edit
                         </Link>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
                         <div>
-                            <span className="text-gray-500">Kode Kebun</span>
-                            <p className="font-mono font-medium mt-0.5">{kebun.kodeKebun}</p>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">Luas</span>
-                            <p className="font-medium mt-0.5">{kebun.luasHektare} Ha</p>
+                            <p className="text-xs text-bone/30 uppercase tracking-wider mb-1">Luas</p>
+                            <p className="text-sm font-medium text-bone">{kebun.luasHektare} ha</p>
                         </div>
                         <div className="col-span-2">
-                            <span className="text-gray-500">Koordinat</span>
-                            <p className="font-mono text-xs mt-0.5 text-gray-700 break-all">{kebun.koordinat}</p>
+                            <p className="text-xs text-bone/30 uppercase tracking-wider mb-1">Koordinat</p>
+                            <p className="text-xs font-mono text-bone/50 break-all leading-relaxed">{kebun.koordinat}</p>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Mandor Section */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+            {/* Mandor card */}
+            <div className="bg-ink-muted border border-white/10 rounded-lg p-6 mb-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800">Mandor Pengawas</h2>
+                    <div>
+                        <p className="text-xs font-semibold text-bone/30 uppercase tracking-wider">Mandor Pengawas</p>
+                    </div>
                     <button
                         onClick={() => { setShowAssignMandor(v => !v); setShowAssignSupir(false); }}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
+                        className="px-3 py-1.5 bg-verdant text-ink text-xs font-semibold rounded-md hover:bg-verdant-hover transition"
                     >
-                        {assignment.mandor ? "Pindah Mandor" : "Tugaskan Mandor"}
+                        {assignment.mandor ? "Pindah Mandor" : "+ Tugaskan"}
                     </button>
                 </div>
 
                 {assignment.mandor ? (
-                    <div className="text-sm">
-                        <p className="font-medium">{assignment.mandor.nama}</p>
-                        <p className="text-gray-500">{assignment.mandor.email}</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-verdant-soft flex items-center justify-center text-verdant text-sm font-bold shrink-0">
+                            {assignment.mandor.nama.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-bone">{assignment.mandor.nama}</p>
+                            <p className="text-xs text-bone/40">{assignment.mandor.email}</p>
+                        </div>
                     </div>
                 ) : (
-                    <p className="text-sm text-gray-400 italic">Belum ada mandor yang ditugaskan.</p>
+                    <p className="text-sm text-bone/30">Belum ada mandor yang ditugaskan.</p>
                 )}
 
                 {showAssignMandor && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm space-y-3">
+                    <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
                         <div>
-                            <label className="block text-gray-600 mb-1">
-                                {assignment.mandor ? "ID Mandor yang akan dipindah" : "ID Mandor"}
+                            <label className="block text-xs text-bone/40 uppercase tracking-wider mb-1.5">
+                                {assignment.mandor ? "ID Mandor yang dipindah" : "ID Mandor"}
                             </label>
                             <input
                                 type="number"
-                                className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={inputCls()}
                                 placeholder="Contoh: 5"
                                 value={mandorId}
                                 onChange={e => setMandorId(e.target.value)}
@@ -245,26 +254,28 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
                         </div>
                         {assignment.mandor && (
                             <div>
-                                <label className="block text-gray-600 mb-1">ID Kebun Tujuan (wajib saat pindah)</label>
+                                <label className="block text-xs text-bone/40 uppercase tracking-wider mb-1.5">
+                                    ID Kebun Tujuan
+                                </label>
                                 <input
                                     type="number"
-                                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className={inputCls()}
                                     placeholder="ID kebun tujuan"
                                     value={newKebunMandorId}
                                     onChange={e => setNewKebunMandorId(e.target.value)}
                                 />
                             </div>
                         )}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 pt-1">
                             <button
                                 onClick={assignment.mandor ? handleReassignMandor : handleAssignMandor}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                                className="px-4 py-1.5 bg-verdant text-ink text-sm font-semibold rounded-md hover:bg-verdant-hover transition"
                             >
                                 {assignment.mandor ? "Pindahkan" : "Tugaskan"}
                             </button>
                             <button
                                 onClick={() => { setShowAssignMandor(false); setMandorId(""); setNewKebunMandorId(""); }}
-                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+                                className="px-4 py-1.5 text-sm text-bone/40 hover:text-bone transition"
                             >
                                 Batal
                             </button>
@@ -273,39 +284,62 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
                 )}
             </div>
 
-            {/* Supir Section */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            {/* Supir card */}
+            <div className="bg-ink-muted border border-white/10 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800">Daftar Supir Truk</h2>
+                    <div>
+                        <p className="text-xs font-semibold text-bone/30 uppercase tracking-wider">
+                            Supir Truk
+                            {assignment.supirList.length > 0 && (
+                                <span className="ml-2 px-1.5 py-0.5 bg-verdant-soft text-verdant rounded text-xs">
+                                    {assignment.supirList.length}
+                                </span>
+                            )}
+                        </p>
+                    </div>
                     <button
                         onClick={() => { setShowAssignSupir(v => !v); setShowAssignMandor(false); }}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
+                        className="px-3 py-1.5 bg-verdant text-ink text-xs font-semibold rounded-md hover:bg-verdant-hover transition"
                     >
-                        Tugaskan Supir
+                        + Tugaskan
                     </button>
                 </div>
 
-                <input
-                    type="text"
-                    placeholder="Cari nama supir..."
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full max-w-xs mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    value={searchSupir}
-                    onChange={e => setSearchSupir(e.target.value)}
-                />
+                {/* Search supir */}
+                {assignment.supirList.length > 0 && (
+                    <div className="relative mb-3">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-bone/30 text-sm">⌕</span>
+                        <input
+                            type="text"
+                            placeholder="Cari nama supir..."
+                            className="w-full bg-ink border border-white/10 text-bone text-sm rounded-md pl-8 pr-3 py-2 focus:ring-1 focus:ring-verdant focus:border-verdant focus:outline-none placeholder:text-bone/30 transition"
+                            value={searchSupir}
+                            onChange={e => setSearchSupir(e.target.value)}
+                        />
+                    </div>
+                )}
 
                 {filteredSupir.length === 0 ? (
-                    <p className="text-sm text-gray-400 italic">Belum ada supir yang ditugaskan di kebun ini.</p>
+                    <p className="text-sm text-bone/30">Belum ada supir yang ditugaskan di kebun ini.</p>
                 ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         {filteredSupir.map(s => (
-                            <div key={s.id} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-100 text-sm">
-                                <div>
-                                    <p className="font-medium">{s.nama}</p>
-                                    <p className="text-gray-500 text-xs">{s.email}</p>
+                            <div
+                                key={s.id}
+                                className="flex items-center justify-between px-3 py-2.5 rounded-md bg-ink-soft hover:bg-white/5 transition group"
+                            >
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-full bg-ink-muted border border-white/10 flex items-center justify-center text-bone/50 text-xs font-medium shrink-0">
+                                        {s.nama.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-bone">{s.nama}</p>
+                                        <p className="text-xs text-bone/40">{s.email}</p>
+                                    </div>
                                 </div>
                                 <button
                                     onClick={() => { setSupirId(String(s.id)); setShowAssignSupir(true); }}
-                                    className="px-3 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition"
+                                    className="text-xs text-bone/30 hover:text-verdant transition opacity-0 group-hover:opacity-100"
                                 >
                                     Pindahkan
                                 </button>
@@ -315,39 +349,40 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
                 )}
 
                 {showAssignSupir && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm space-y-3">
+                    <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
                         <div>
-                            <label className="block text-gray-600 mb-1">ID Supir</label>
+                            <label className="block text-xs text-bone/40 uppercase tracking-wider mb-1.5">ID Supir</label>
                             <input
                                 type="number"
-                                className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={inputCls()}
                                 placeholder="Contoh: 12"
                                 value={supirId}
                                 onChange={e => setSupirId(e.target.value)}
                             />
                         </div>
                         <div>
-                            <label className="block text-gray-600 mb-1">
-                                ID Kebun Tujuan <span className="text-gray-400">(isi jika memindahkan dari kebun lain)</span>
+                            <label className="block text-xs text-bone/40 uppercase tracking-wider mb-1.5">
+                                ID Kebun Tujuan
+                                <span className="ml-1 normal-case text-bone/25">(isi jika memindahkan dari kebun lain)</span>
                             </label>
                             <input
                                 type="number"
-                                className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={inputCls()}
                                 placeholder="Kosongkan jika assign baru"
                                 value={newKebunSupirId}
                                 onChange={e => setNewKebunSupirId(e.target.value)}
                             />
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 pt-1">
                             <button
                                 onClick={newKebunSupirId ? handleReassignSupir : handleAssignSupir}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                                className="px-4 py-1.5 bg-verdant text-ink text-sm font-semibold rounded-md hover:bg-verdant-hover transition"
                             >
                                 {newKebunSupirId ? "Pindahkan" : "Tugaskan"}
                             </button>
                             <button
                                 onClick={() => { setShowAssignSupir(false); setSupirId(""); setNewKebunSupirId(""); }}
-                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+                                className="px-4 py-1.5 text-sm text-bone/40 hover:text-bone transition"
                             >
                                 Batal
                             </button>
