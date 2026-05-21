@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { deliveryApi, DUMMY_DRIVERS, DUMMY_HARVESTS } from "../../../../services/deliveryApi";
 
@@ -12,14 +12,20 @@ export default function MandorCreateDelivery() {
     const [selectedHarvestId, setSelectedHarvestId] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [mandorId, setMandorId] = useState<number | null>(null);
 
-    const mandorId = 1;
+    useEffect(() => {
+        fetch("http://localhost:8080/api/me", { credentials: "include" })
+            .then(r => r.ok ? r.json() : null)
+            .then(u => { if (u?.id) setMandorId(u.id); })
+            .catch(() => {});
+    }, []);
 
     const selectedHarvest = DUMMY_HARVESTS.find(h => h.id.toString() === selectedHarvestId);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedDriverId || !selectedHarvestId) return;
+        if (!selectedDriverId || !selectedHarvestId || !mandorId) return;
 
         if (selectedHarvest && selectedHarvest.kilogram > 400) {
             setError("Kapasitas truk sawit maksimal 400 Kg. Hasil panen ini terlalu berat.");

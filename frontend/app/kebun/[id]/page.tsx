@@ -56,7 +56,7 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
             try {
                 const params = new URLSearchParams();
                 if (searchSupir) params.append("searchNamaSupir", searchSupir);
-                const res = await fetch(`${API}/api/kebun/${kebunId}/detail?${params}`);
+                const res = await fetch(`${API}/api/kebun/${kebunId}/detail?${params}`, { credentials: "include" });
                 if (res.status === 403) { setError("Akses ditolak."); return; }
                 if (res.status === 404) { setError("Kebun tidak ditemukan."); return; }
                 if (!res.ok) { setError(`Error ${res.status}`); return; }
@@ -76,6 +76,7 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
         return fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(body),
         });
     };
