@@ -20,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 import java.util.List;
 
-@CrossOrigin(origins = {"http://localhost:3000", "https://107.23.124.17.nip.io", "https://my-sawit-ten.vercel.app"})
 @RestController
 @RequestMapping("/api/harvest")
 @RequiredArgsConstructor
