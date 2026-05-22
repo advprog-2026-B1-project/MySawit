@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/register", "/"];
+// 1. Update path agar sesuai dengan struktur folder app/auth/...
+const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/"];
 
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -14,7 +15,8 @@ export function proxy(request: NextRequest) {
     const hasSession = request.cookies.has("JSESSIONID");
     if (!hasSession) {
         const loginUrl = request.nextUrl.clone();
-        loginUrl.pathname = "/login";
+        // 2. Ubah juga path tujuan redirect ke sini
+        loginUrl.pathname = "/auth/login";
         return NextResponse.redirect(loginUrl);
     }
 
