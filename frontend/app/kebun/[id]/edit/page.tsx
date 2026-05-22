@@ -55,7 +55,7 @@ export default function KebunEditPage({ params }: { params: Promise<{ id: string
     useEffect(() => {
         const load = async () => {
             try {
-                const res = await fetch(`${API}/api/kebun/${id}`);
+                const res = await fetch(`${API}/api/kebun/${id}`, { credentials: "include" });
                 if (res.status === 403) { setError("Akses ditolak."); return; }
                 if (res.status === 404) { setError("Kebun tidak ditemukan."); return; }
                 if (!res.ok) { setError(`Error ${res.status}`); return; }
@@ -96,6 +96,7 @@ export default function KebunEditPage({ params }: { params: Promise<{ id: string
             const res = await fetch(`${API}/api/kebun/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(body),
             });
 

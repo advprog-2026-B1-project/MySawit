@@ -26,7 +26,7 @@ export default function HarvestHistory() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:8080/api/harvest/me')
+        fetch('http://localhost:8080/api/harvest/me', { credentials: "include" })
             .then(res => res.json())
             .then(data => {
                 setHistory(data);
