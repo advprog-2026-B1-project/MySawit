@@ -29,7 +29,16 @@ export default function RegisterPage() {
       const res = await fetch("http://localhost:8080/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        credentials: "include",
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          nama: formData.nama,
+          password: formData.password,
+          role: formData.role,
+          nomorSertifikasiMandor:
+            formData.role === "Mandor" ? formData.nomorSertifikasi : null,
+        }),
       });
 
       if (res.ok) {
@@ -38,7 +47,7 @@ export default function RegisterPage() {
         const message = await res.text();
         setError(message || "Gagal melakukan registrasi");
       }
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan pada server.");
     } finally {
       setIsLoading(false);

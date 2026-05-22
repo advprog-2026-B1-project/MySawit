@@ -40,6 +40,17 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public List<UserResponse> getAllUsers(String nama, String email, String role) {
+        return userRepository.findAll().stream()
+                .filter(user -> containsIgnoreCase(user.getNama(), nama))
+                .filter(user -> containsIgnoreCase(user.getEmail(), email))
+                .filter(user -> role == null || role.isBlank()
+                        || (user.getRole() != null && user.getRole().name().equalsIgnoreCase(role)))
+                .map(UserResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
@@ -55,13 +66,20 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteUser(Long id, Long currentAdminId) {
-        if (id.equals(currentAdminId)) {
-            throw new IllegalArgumentException("Admin utama tidak dapat menghapus dirinya sendiri.");
+    public void deleteUser(Long targetUserId, Long currentAdminId) {
+        if (targetUserId == null) {
+            throw new IllegalArgumentException("ID pengguna wajib diisi");
         }
-        userRepository.deleteById(id);
+        if (targetUserId.equals(currentAdminId)) {
+            throw new IllegalArgumentException("Admin Utama tidak dapat menghapus akunnya sendiri");
+        }
+
+        userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", targetUserId));
+        userRepository.deleteById(targetUserId);
     }
 
+    @Transactional
     public void assignWorkerToMandor(Long workerId, Long mandorId) {
         User worker = userRepository.findById(workerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", workerId));
@@ -69,39 +87,54 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", mandorId));
 
         if (worker.getRole() != User.Role.Buruh) {
-            throw new BusinessRuleViolationException(
-                    "User dengan id '" + workerId + "' bukan Buruh");
+            throw new BusinessRuleViolationException("User dengan id '" + workerId + "' bukan Buruh");
         }
         if (mandor.getRole() != User.Role.Mandor) {
-            throw new BusinessRuleViolationException(
-                    "User dengan id '" + mandorId + "' bukan Mandor");
+            throw new BusinessRuleViolationException("User dengan id '" + mandorId + "' bukan Mandor");
         }
 
-        assignmentRepository.findByWorkerIdAndUnassignedAtIsNull(workerId).ifPresent(existing -> {
-            existing.setUnassignedAt(OffsetDateTime.now());
-            assignmentRepository.save(existing);
-        });
+        assignmentRepository.findByWorkerIdAndUnassignedAtIsNull(workerId)
+                .ifPresent(existing -> {
+                    existing.setUnassignedAt(OffsetDateTime.now());
+                    assignmentRepository.save(existing);
+                });
 
-        WorkerAssignment newAssignment = new WorkerAssignment();
-        newAssignment.setWorker(worker);
-        newAssignment.setMandor(mandor);
-        newAssignment.setAssignedAt(OffsetDateTime.now());
-        assignmentRepository.save(newAssignment);
+        WorkerAssignment assignment = new WorkerAssignment();
+        assignment.setWorker(worker);
+        assignment.setMandor(mandor);
+        assignment.setAssignedAt(OffsetDateTime.now());
+        assignmentRepository.save(assignment);
     }
 
     public UserResponse updateUser(Long id, RegisterRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
-        user.setNama(request.nama());
-        user.setUsername(request.username());
-        user.setEmail(request.email());
-        user.setRole(User.Role.valueOf(request.role()));
-        if (request.password() != null && !request.password().isBlank()) {
-            user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setNama(request.getNama());
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setRole(parseRole(request.getRole()));
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
         user.setUpdatedAt(OffsetDateTime.now());
 
         return UserResponse.from(userRepository.save(user));
+    }
+
+    private User.Role parseRole(String role) {
+        for (User.Role candidate : User.Role.values()) {
+            if (candidate.name().equalsIgnoreCase(role)) {
+                return candidate;
+            }
+        }
+        throw new IllegalArgumentException("Role tidak valid: " + role);
+    }
+
+    private boolean containsIgnoreCase(String actual, String expectedPart) {
+        if (expectedPart == null || expectedPart.isBlank()) {
+            return true;
+        }
+        return actual != null && actual.toLowerCase().contains(expectedPart.toLowerCase());
     }
 }

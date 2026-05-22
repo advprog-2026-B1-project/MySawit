@@ -20,6 +20,7 @@ export default function LoginPage() {
       const res = await fetch("http://localhost:8080/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
@@ -30,7 +31,7 @@ export default function LoginPage() {
         const message = await res.text();
         setError(message || "Gagal login. Periksa kembali kredensial Anda.");
       }
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan pada server.");
     } finally {
       setIsLoading(false);

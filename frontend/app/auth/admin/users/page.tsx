@@ -14,20 +14,28 @@ export default function AdminUserManagement() {
   // Asumsi ID admin yang sedang login adalah 1 untuk demonstrasi
   const currentAdminId = 1; 
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/api/admin/users");
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
-      }
-    } catch (err) {
-      console.error("Gagal mengambil data pengguna", err);
-    }
-  };
-
   useEffect(() => {
-    fetchUsers();
+    let isMounted = true;
+
+    async function loadUsers() {
+      try {
+        const res = await fetch("http://localhost:8080/api/admin/users", {
+          credentials: "include",
+        });
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          setUsers(data);
+        }
+      } catch (error) {
+        console.error("Gagal mengambil data pengguna", error);
+      }
+    }
+
+    void loadUsers();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleDelete = async (id: number) => {
@@ -36,6 +44,7 @@ export default function AdminUserManagement() {
     try {
       const res = await fetch(`http://localhost:8080/api/admin/users/${id}?currentAdminId=${currentAdminId}`, {
         method: "DELETE",
+        credentials: "include",
       });
 
       if (res.ok) {

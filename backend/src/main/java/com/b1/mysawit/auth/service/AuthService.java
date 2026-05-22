@@ -2,6 +2,7 @@ package com.b1.mysawit.auth.service;
 
 import com.b1.mysawit.auth.dto.RegisterRequest;
 import com.b1.mysawit.auth.dto.UserResponse;
+import com.b1.mysawit.common.exception.BusinessRuleViolationException;
 import com.b1.mysawit.common.exception.DuplicateResourceException;
 import com.b1.mysawit.domain.MandorDetail;
 import com.b1.mysawit.domain.User;
@@ -29,27 +30,38 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public UserResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
-            throw new DuplicateResourceException("User", "email", request.email());
+        validateRegisterRequest(request);
+
+        String email = request.getEmail().trim();
+        User.Role role = parseRole(request.getRole());
+        if (role == User.Role.Mandor && isBlank(request.getNomorSertifikasiMandor())) {
+            throw new BusinessRuleViolationException("Nomor Sertifikasi Mandor wajib diisi untuk role Mandor.");
+        }
+
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateResourceException("User", "email", email);
         }
 
         User user = new User();
-        user.setUsername(request.username());
-        user.setEmail(request.email());
-        user.setNama(request.nama());
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setRole(User.Role.valueOf(request.role()));
-        user.setCreatedAt(OffsetDateTime.now());
-        user.setUpdatedAt(OffsetDateTime.now());
+        OffsetDateTime now = OffsetDateTime.now();
+
+        user.setNama(request.getNama().trim());
+        user.setEmail(email);
+        user.setUsername(defaultUsername(request));
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRole(role);
+        user.setCreatedAt(now);
+        user.setUpdatedAt(now);
 
         User savedUser = userRepository.save(user);
 
-        if (savedUser.getRole() == User.Role.Mandor) {
-            MandorDetail detail = new MandorDetail();
-            detail.setMandor(savedUser);
-            detail.setNomorSertifikasi(request.nomorSertifikasi());
-            mandorDetailRepository.save(detail);
+        if (role == User.Role.Mandor) {
+            MandorDetail mandorDetail = new MandorDetail();
+            mandorDetail.setNomorSertifikasi(request.getNomorSertifikasiMandor().trim());
+            mandorDetail.setMandor(savedUser);
+            mandorDetailRepository.save(mandorDetail);
         }
 
         return UserResponse.from(savedUser);
@@ -60,5 +72,43 @@ public class AuthService {
         return userRepository.findByEmail(email)
                 .map(user -> passwordEncoder.matches(password, user.getPasswordHash()))
                 .orElse(false);
+    }
+
+    private void validateRegisterRequest(RegisterRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Data registrasi tidak boleh kosong");
+        }
+        if (isBlank(request.getNama())) {
+            throw new IllegalArgumentException("Nama wajib diisi");
+        }
+        if (isBlank(request.getEmail())) {
+            throw new IllegalArgumentException("Email wajib diisi");
+        }
+        if (isBlank(request.getPassword())) {
+            throw new IllegalArgumentException("Password wajib diisi");
+        }
+        if (isBlank(request.getRole())) {
+            throw new IllegalArgumentException("Role wajib diisi");
+        }
+    }
+
+    private String defaultUsername(RegisterRequest request) {
+        if (!isBlank(request.getUsername())) {
+            return request.getUsername().trim();
+        }
+        return request.getEmail().trim();
+    }
+
+    private User.Role parseRole(String role) {
+        for (User.Role candidate : User.Role.values()) {
+            if (candidate.name().equalsIgnoreCase(role)) {
+                return candidate;
+            }
+        }
+        throw new IllegalArgumentException("Role tidak valid: " + role);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

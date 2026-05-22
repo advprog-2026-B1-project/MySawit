@@ -92,8 +92,11 @@ public class AppController {
 
     @PreAuthorize("hasAuthority('Admin')")
     @GetMapping("/admin/users")
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<List<UserResponse>> getAllUsers(
+            @RequestParam(required = false) String nama,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String role) {
+        return ResponseEntity.ok(userService.getAllUsers(nama, email, role));
     }
 
     @PreAuthorize("hasAuthority('Admin')")
