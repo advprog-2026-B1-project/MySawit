@@ -20,8 +20,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.b1.mysawit.kebun.dto.KebunResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.MediaType;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,8 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({SecurityConfig.class, MethodSecurityConfig.class})
 class KebunControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
 
     @MockitoBean private KebunService kebunService;
     @MockitoBean private UserDetailsService userDetailsService;
@@ -88,6 +95,113 @@ class KebunControllerTest {
 
         mockMvc.perform(get("/api/kebun/dashboard?naive=true"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testCreateKebun_Returns201() throws Exception {
+        KebunResponse response = KebunResponse.builder()
+                .id(1L).kodeKebun("KB-001").namaKebun("Kebun Alpha")
+                .luasHektare(new BigDecimal("4.00")).build();
+        when(kebunService.createKebun(any())).thenReturn(response);
+
+        mockMvc.perform(post("/api/kebun")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"kodeKebun\":\"KB-001\",\"namaKebun\":\"Kebun Alpha\",\"koordinat\":\"[(0,0),(200,0),(200,200),(0,200)]\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.kodeKebun").value("KB-001"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testGetAllKebun_ReturnsList() throws Exception {
+        KebunResponse response = KebunResponse.builder()
+                .id(1L).kodeKebun("KB-001").namaKebun("Kebun Alpha").build();
+        when(kebunService.getAllKebun(null, null)).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/kebun"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].kodeKebun").value("KB-001"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testGetKebunById_ReturnsKebun() throws Exception {
+        KebunResponse response = KebunResponse.builder()
+                .id(1L).kodeKebun("KB-001").namaKebun("Kebun Alpha").build();
+        when(kebunService.getKebunById(1L)).thenReturn(response);
+
+        mockMvc.perform(get("/api/kebun/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.kodeKebun").value("KB-001"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testUpdateKebun_ReturnsUpdated() throws Exception {
+        KebunResponse response = KebunResponse.builder()
+                .id(1L).kodeKebun("KB-001").namaKebun("Kebun Updated").build();
+        when(kebunService.updateKebun(eq(1L), any())).thenReturn(response);
+
+        mockMvc.perform(put("/api/kebun/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"namaKebun\":\"Kebun Updated\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.namaKebun").value("Kebun Updated"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testDeleteKebun_Returns204() throws Exception {
+        doNothing().when(kebunService).deleteKebun(1L);
+        mockMvc.perform(delete("/api/kebun/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testAssignMandor_Returns204() throws Exception {
+        doNothing().when(kebunService).assignMandor(any(), any());
+        mockMvc.perform(post("/api/kebun/assign-mandor")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"mandorId\":10,\"kebunId\":1}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testAssignSupir_Returns204() throws Exception {
+        doNothing().when(kebunService).assignSupir(any(), any());
+        mockMvc.perform(post("/api/kebun/assign-supir")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"supirId\":20,\"kebunId\":1}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testReassignMandor_Returns204() throws Exception {
+        doNothing().when(kebunService).reassignMandor(any(), any(), any());
+        mockMvc.perform(post("/api/kebun/reassign-mandor")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"mandorId\":10,\"oldKebunId\":1,\"newKebunId\":2}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testReassignSupir_Returns204() throws Exception {
+        doNothing().when(kebunService).reassignSupir(any(), any(), any());
+        mockMvc.perform(post("/api/kebun/reassign-supir")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"supirId\":20,\"oldKebunId\":1,\"newKebunId\":2}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testUnauthorized_Returns401() throws Exception {
+        mockMvc.perform(get("/api/kebun"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

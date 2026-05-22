@@ -7,4 +7,7 @@ scrape_configs:
     static_configs:
       - targets: ['host.docker.internal:8080']
         labels:
-          instance: 'backend:8080'
+          instance: 'local'
+      - targets: ['107.23.124.17.nip.io']
+        labels:
+          instance: 'production'

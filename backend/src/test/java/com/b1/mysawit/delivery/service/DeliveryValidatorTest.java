@@ -5,21 +5,28 @@ import com.b1.mysawit.delivery.dto.MandorDeliveryDecisionRequest;
 import com.b1.mysawit.domain.Delivery;
 import com.b1.mysawit.domain.HasilPanen;
 import com.b1.mysawit.domain.User;
+import com.b1.mysawit.kebun.facade.KebunAssignmentFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@ExtendWith(MockitoExtension.class)
 class DeliveryValidatorTest {
+
+    @Mock private KebunAssignmentFacade kebunAssignmentFacade;
 
     private DeliveryValidator validator;
 
     @BeforeEach
     void setUp() {
-        validator = new DeliveryValidator();
+        validator = new DeliveryValidator(kebunAssignmentFacade);
     }
 
     @Test

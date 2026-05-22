@@ -21,5 +21,7 @@ public interface MandorAssignmentRepository extends JpaRepository<MandorAssignme
 
     Optional<MandorAssignment> findByKebunIdAndUnassignedAtIsNull(Long kebunId);
 
+    Optional<MandorAssignment> findByMandorIdAndUnassignedAtIsNull(Long mandorId);
+
     long countByKebunIdAndUnassignedAtIsNull(Long kebunId);
 }
