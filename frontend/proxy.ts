@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/"];
+const PUBLIC_PATHS = ["/login", "/register", "/"];
 
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -14,8 +14,7 @@ export function proxy(request: NextRequest) {
     const hasSession = request.cookies.has("JSESSIONID");
     if (!hasSession) {
         const loginUrl = request.nextUrl.clone();
-        // 2. Ubah juga path tujuan redirect ke sini
-        loginUrl.pathname = "/auth/login";
+        loginUrl.pathname = "/login";
         return NextResponse.redirect(loginUrl);
     }
 
