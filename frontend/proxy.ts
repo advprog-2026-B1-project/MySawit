@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// 1. Update path agar sesuai dengan struktur folder app/auth/...
 const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/"];
 
 export function proxy(request: NextRequest) {
