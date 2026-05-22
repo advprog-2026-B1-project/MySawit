@@ -72,6 +72,9 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("net.serenity-bdd:serenity-junit5:4.1.14")
+    testImplementation("net.serenity-bdd:serenity-spring:4.1.14")
+    testImplementation("io.rest-assured:rest-assured:5.4.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
@@ -83,7 +86,17 @@ dependencies {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+    exclude("**/functional/**")
     finalizedBy(tasks.named("jacocoTestReport"))
+    systemProperty("serenity.outputDirectory", "${layout.buildDirectory.get()}/site/serenity")
+}
+
+tasks.register<Test>("functionalTest") {
+    useJUnitPlatform()
+    include("**/functional/**")
+    systemProperty("serenity.outputDirectory", "${layout.buildDirectory.get()}/site/serenity")
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
 }
 
 tasks.named("sonar") {
