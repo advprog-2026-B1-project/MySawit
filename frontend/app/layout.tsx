@@ -20,6 +20,13 @@ export const metadata: Metadata = {
 
 const navLinks = [
     {
+        group: "Admin",
+        items: [
+            { label: "Manajemen User", href: "/admin/users" },
+            { label: "Assign Buruh", href: "/admin/users/assign" },
+        ],
+    },
+    {
         group: "Kebun",
         items: [
             { label: "Daftar Kebun", href: "/kebun" },
