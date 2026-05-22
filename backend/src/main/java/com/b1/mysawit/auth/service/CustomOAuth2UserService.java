@@ -2,7 +2,6 @@ package com.b1.mysawit.auth.service;
 
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -14,13 +13,15 @@ import java.time.OffsetDateTime;
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public CustomOAuth2UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
-
         return processOAuth2User(oAuth2User);
     }
 
@@ -32,12 +33,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setNama(name);
-            newUser.setUsername(email.split("@")[0]); 
-            
-            // set default role ke buruh, admin bisa ganti
-            newUser.setRole(User.Role.Buruh); 
+            newUser.setUsername(email.split("@")[0]);
+            newUser.setRole(User.Role.Buruh);
             newUser.setCreatedAt(OffsetDateTime.now());
-            
+            newUser.setUpdatedAt(OffsetDateTime.now());
             userRepository.save(newUser);
         }
 

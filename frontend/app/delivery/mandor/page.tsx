@@ -34,10 +34,17 @@ export default function MandorDeliveryDashboard() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [mandorId, setMandorId] = useState<number | null>(null);
 
-    const mandorId = 1;
+    useEffect(() => {
+        fetch("http://localhost:8080/api/me", { credentials: "include" })
+            .then(r => r.ok ? r.json() : null)
+            .then(u => { if (u?.id) setMandorId(u.id); })
+            .catch(() => {});
+    }, []);
 
     const fetchDeliveries = async () => {
+        if (!mandorId) return;
         setLoading(true);
         setError("");
         try {
@@ -62,6 +69,7 @@ export default function MandorDeliveryDashboard() {
             }
 
             setDeliveries(filtered);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             setError(err.message || "Gagal memuat data.");
         } finally {
@@ -72,7 +80,7 @@ export default function MandorDeliveryDashboard() {
     useEffect(() => {
         fetchDeliveries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewMode, keyword, statusFilter, dateFilter]);
+    }, [viewMode, keyword, statusFilter, dateFilter, mandorId]);
 
     const formatDate = (iso?: string) => {
         if (!iso) return "-";

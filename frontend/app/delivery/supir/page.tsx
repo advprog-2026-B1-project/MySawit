@@ -11,11 +11,18 @@ export default function SupirDeliveryDashboard() {
     const [viewMode, setViewMode] = useState<"assigned" | "history">("assigned");
     const [dateFilter, setDateFilter] = useState("");
     const [loading, setLoading] = useState(true);
-
-    const driverId = 2;
+    const [driverId, setDriverId] = useState<number | null>(null);
 
     useEffect(() => {
-        const fetch = async () => {
+        fetch("http://localhost:8080/api/me", { credentials: "include" })
+            .then(r => r.ok ? r.json() : null)
+            .then(u => { if (u?.id) setDriverId(u.id); })
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        if (!driverId) return;
+        const fetchData = async () => {
             setLoading(true);
             const data = await deliveryApi.getByDriver(driverId);
             let filtered = viewMode === "assigned"
@@ -29,8 +36,8 @@ export default function SupirDeliveryDashboard() {
             setDeliveries(filtered);
             setLoading(false);
         };
-        fetch();
-    }, [viewMode, dateFilter]);
+        fetchData();
+    }, [viewMode, dateFilter, driverId]);
 
     const formatDate = (iso?: string) => {
         if (!iso) return "-";

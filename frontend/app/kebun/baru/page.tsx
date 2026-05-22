@@ -65,6 +65,7 @@ export default function KebunBaruPage() {
             const res = await fetch(`${API}/api/kebun`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({
                     kodeKebun: form.kodeKebun.trim(),
                     namaKebun: form.namaKebun.trim(),

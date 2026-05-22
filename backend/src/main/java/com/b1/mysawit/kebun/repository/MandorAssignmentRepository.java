@@ -18,4 +18,8 @@ public interface MandorAssignmentRepository extends JpaRepository<MandorAssignme
     boolean existsByMandorIdAndUnassignedAtIsNull(Long mandorId);
 
     Optional<MandorAssignment> findByMandorIdAndKebunIdAndUnassignedAtIsNull(Long mandorId, Long kebunId);
+
+    Optional<MandorAssignment> findByKebunIdAndUnassignedAtIsNull(Long kebunId);
+
+    long countByKebunIdAndUnassignedAtIsNull(Long kebunId);
 }
