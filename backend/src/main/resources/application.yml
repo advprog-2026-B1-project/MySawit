@@ -45,3 +45,6 @@ management:
   metrics:
     tags:
       application: MySawit
+
+server:
+  forward-headers-strategy: native
