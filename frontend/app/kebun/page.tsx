@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = ``;
+const API = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 interface Kebun {
     id: number;

@@ -49,7 +49,7 @@ export default function MandorDashboard() {
                 if (statusFilter) queryParams.append("status", statusFilter);
                 if (searchNama) queryParams.append("searchNama", searchNama);
 
-                const response = await fetch(`/api/harvest/mandor?${queryParams.toString()}`, { credentials: "include" });
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/harvest/mandor?${queryParams.toString()}`, { credentials: "include" });
 
                 if (response.ok) {
                     const data = await response.json();
@@ -65,7 +65,7 @@ export default function MandorDashboard() {
 
     const handleApprove = async (id: number) => {
         try {
-            const response = await fetch(`/api/harvest/${id}/approve`, { method: "PUT", credentials: "include" });
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/harvest/${id}/approve`, { method: "PUT", credentials: "include" });
             if (response.ok) {
                 alert("Berhasil disetujui!");
                 setRefreshTrigger(prev => prev + 1);
@@ -85,7 +85,7 @@ export default function MandorDashboard() {
         if (!selectedHarvestId) return;
 
         try {
-            const response = await fetch(`/api/harvest/${selectedHarvestId}/reject`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/harvest/${selectedHarvestId}/reject`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

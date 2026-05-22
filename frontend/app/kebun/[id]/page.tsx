@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 
-const API = ``;
+const API = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 interface KebunDetail {
     id: number;

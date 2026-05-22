@@ -26,7 +26,7 @@ export default function RegisterPage() {
     setError("");
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/register`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -180,7 +180,7 @@ export default function RegisterPage() {
 
         <p className="mt-8 text-center text-sm text-slate-400">
           Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-teal-400 transition-colors hover:text-teal-300">
+          <Link href="/auth/login" className="font-semibold text-teal-400 transition-colors hover:text-teal-300">
             Sign in
           </Link>
         </p>
