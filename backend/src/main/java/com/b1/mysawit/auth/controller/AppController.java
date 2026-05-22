@@ -23,7 +23,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = {"http://localhost:3000", "https://107.23.124.17.nip.io", "https://my-sawit-ten.vercel.app"})
 public class AppController {
 
     private final AuthService authService;
