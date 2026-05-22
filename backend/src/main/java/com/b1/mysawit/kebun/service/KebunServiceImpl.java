@@ -61,6 +61,7 @@ public class KebunServiceImpl implements KebunService {
     public KebunResponse createKebun(KebunCreateRequest request) {
         kebunValidator.validateCreateRequest(request);
         checkKodeKebunNotDuplicate(request.getKodeKebun());
+        kebunMapper.calculateLuas(request.getKoordinat()); // validasi bentuk persegi sebelum cek overlap
         kebunOverlapValidator.validateNoOverlap(
                 request.getKoordinat(),
                 kebunRepository.findAllKoordinat()
@@ -121,6 +122,7 @@ public class KebunServiceImpl implements KebunService {
         Kebun kebun = findKebunOrThrow(id);
         // Cek overlap hanya jika koordinat memang diubah
         if (request.getKoordinat() != null) {
+            kebunMapper.calculateLuas(request.getKoordinat()); // validasi bentuk persegi dulu
             kebunOverlapValidator.validateNoOverlap(
                     request.getKoordinat(),
                     kebunRepository.findAllKoordinatExcluding(id)
