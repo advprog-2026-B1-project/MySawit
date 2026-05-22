@@ -89,3 +89,17 @@ tasks.named<Test>("test") {
 tasks.named("sonar") {
     dependsOn(tasks.test)
 }
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val envFile = file("../.env")
+    if (envFile.exists()) {
+        envFile.readLines().forEach {
+            if (it.isNotBlank() && !it.startsWith("#")) {
+                val split = it.split("=", limit = 2)
+                if (split.size == 2) {
+                    environment(split[0].trim(), split[1].trim().removeSurrounding("\""))
+                }
+            }
+        }
+    }
+}

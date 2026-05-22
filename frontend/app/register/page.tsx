@@ -42,7 +42,7 @@ export default function RegisterPage() {
                     email: form.email.trim(),
                     password: form.password,
                     role: form.role,
-                    nomorSertifikasi: form.role === "Mandor" ? form.nomorSertifikasi.trim() : null,
+                    nomorSertifikasiMandor: form.role === "Mandor" ? form.nomorSertifikasi.trim() : null,
                 }),
             });
 
