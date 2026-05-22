@@ -1,6 +1,8 @@
 package com.b1.mysawit.kebun.service;
 
 import com.b1.mysawit.kebun.dto.KebunCreateRequest;
+import com.b1.mysawit.kebun.dto.KebunDashboardItem;
+import com.b1.mysawit.kebun.dto.KebunDetailResponse;
 import com.b1.mysawit.kebun.dto.KebunResponse;
 import com.b1.mysawit.kebun.dto.KebunUpdateRequest;
 
@@ -14,6 +16,8 @@ public interface KebunService {
 
     KebunResponse getKebunById(Long id);
 
+    KebunDetailResponse getKebunDetail(Long id, String searchNamaSupir);
+
     KebunResponse updateKebun(Long id, KebunUpdateRequest request);
 
     void deleteKebun(Long id);
@@ -25,4 +29,6 @@ public interface KebunService {
     void reassignMandor(Long mandorId, Long oldKebunId, Long newKebunId);
 
     void reassignSupir(Long supirId, Long oldKebunId, Long newKebunId);
+
+    List<KebunDashboardItem> getDashboard(boolean naive);
 }

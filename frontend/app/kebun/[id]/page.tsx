@@ -54,11 +54,15 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
             setLoading(true);
             setError("");
             try {
-                const kebunRes = await fetch(`${API}/api/kebun/${kebunId}`);
-                if (kebunRes.status === 403) { setError("Akses ditolak."); return; }
-                if (kebunRes.status === 404) { setError("Kebun tidak ditemukan."); return; }
-                if (!kebunRes.ok) { setError(`Error ${kebunRes.status}`); return; }
-                setKebun(await kebunRes.json());
+                const params = new URLSearchParams();
+                if (searchSupir) params.append("searchNamaSupir", searchSupir);
+                const res = await fetch(`${API}/api/kebun/${kebunId}/detail?${params}`, { credentials: "include" });
+                if (res.status === 403) { setError("Akses ditolak."); return; }
+                if (res.status === 404) { setError("Kebun tidak ditemukan."); return; }
+                if (!res.ok) { setError(`Error ${res.status}`); return; }
+                const data = await res.json();
+                setKebun(data);
+                setAssignment({ mandor: data.mandor ?? undefined, supirList: data.supirList ?? [] });
             } catch {
                 setError("Tidak dapat terhubung ke server.");
             } finally {
@@ -66,13 +70,13 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
             }
         };
         fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [kebunId, refresh]);
+    }, [kebunId, refresh, searchSupir]);
 
     const postJson = async (url: string, body: object) => {
         return fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(body),
         });
     };

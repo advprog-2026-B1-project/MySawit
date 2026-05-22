@@ -58,6 +58,7 @@ export default function LaporPanenBuruh() {
 
             const response = await fetch("http://localhost:8080/api/harvest", {
                 method: "POST",
+                credentials: "include",
                 body: formData,
             });
 

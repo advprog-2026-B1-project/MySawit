@@ -1,6 +1,7 @@
 package com.b1.mysawit.kebun.service;
 
 import com.b1.mysawit.auth.facade.UserFacade;
+import com.b1.mysawit.auth.facade.UserSummary;
 import com.b1.mysawit.common.exception.BusinessRuleViolationException;
 import com.b1.mysawit.common.exception.DuplicateResourceException;
 import com.b1.mysawit.common.exception.ResourceNotFoundException;
@@ -9,11 +10,15 @@ import com.b1.mysawit.domain.Kebun;
 import com.b1.mysawit.domain.MandorAssignment;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.kebun.dto.KebunCreateRequest;
+import com.b1.mysawit.kebun.dto.KebunDashboardItem;
+import com.b1.mysawit.kebun.dto.KebunDetailResponse;
 import com.b1.mysawit.kebun.dto.KebunResponse;
 import com.b1.mysawit.kebun.dto.KebunUpdateRequest;
 import com.b1.mysawit.kebun.repository.DriverAssignmentRepository;
 import com.b1.mysawit.kebun.repository.KebunRepository;
 import com.b1.mysawit.kebun.repository.MandorAssignmentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +29,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class KebunServiceImpl implements KebunService {
+
+    private static final Logger log = LoggerFactory.getLogger(KebunServiceImpl.class);
 
     private final KebunRepository kebunRepository;
     private final MandorAssignmentRepository mandorAssignmentRepository;
@@ -76,6 +83,36 @@ public class KebunServiceImpl implements KebunService {
     public KebunResponse getKebunById(Long id) {
         Kebun kebun = findKebunOrThrow(id);
         return kebunMapper.toResponse(kebun);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public KebunDetailResponse getKebunDetail(Long id, String searchNamaSupir) {
+        Kebun kebun = findKebunOrThrow(id);
+
+        UserSummary mandor = mandorAssignmentRepository
+                .findByKebunIdAndUnassignedAtIsNull(id)
+                .flatMap(a -> userFacade.findUserSummaryById(a.getMandor().getId()))
+                .orElse(null);
+
+        List<Long> supirIds = driverAssignmentRepository
+                .findAllByKebunIdAndUnassignedAtIsNull(id).stream()
+                .map(a -> a.getDriver().getId())
+                .collect(Collectors.toList());
+
+        List<UserSummary> supirList = userFacade.findUserSummariesByIds(supirIds, searchNamaSupir);
+
+        return KebunDetailResponse.builder()
+                .id(kebun.getId())
+                .kodeKebun(kebun.getKodeKebun())
+                .namaKebun(kebun.getNamaKebun())
+                .luasHektare(kebun.getLuasHektare())
+                .koordinat(kebun.getKoordinat())
+                .createdAt(kebun.getCreatedAt())
+                .updatedAt(kebun.getUpdatedAt())
+                .mandor(mandor)
+                .supirList(supirList)
+                .build();
     }
 
     @Override
@@ -207,6 +244,36 @@ public class KebunServiceImpl implements KebunService {
                 .unassignedAt(null)
                 .build();
         driverAssignmentRepository.save(newAssignment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<KebunDashboardItem> getDashboard(boolean naive) {
+        long start = System.currentTimeMillis();
+        List<KebunDashboardItem> result;
+
+        if (naive) {
+            // N+1: 1 query untuk list kebun, lalu 2 query per kebun untuk count
+            List<com.b1.mysawit.domain.Kebun> kebunList = kebunRepository.findAll();
+            result = kebunList.stream().map(k -> KebunDashboardItem.builder()
+                    .id(k.getId())
+                    .kodeKebun(k.getKodeKebun())
+                    .namaKebun(k.getNamaKebun())
+                    .luasHektare(k.getLuasHektare())
+                    .countMandorAktif(mandorAssignmentRepository.countByKebunIdAndUnassignedAtIsNull(k.getId()))
+                    .countSupirAktif(driverAssignmentRepository.countByKebunIdAndUnassignedAtIsNull(k.getId()))
+                    .build()
+            ).collect(Collectors.toList());
+        } else {
+            // Optimized: 1 query dengan LEFT JOIN + COUNT GROUP BY
+            result = kebunRepository.findDashboardOptimized();
+        }
+
+        long elapsed = System.currentTimeMillis() - start;
+        log.info("[PROFILING] getDashboard strategy={} kebun={} elapsed={}ms",
+                naive ? "naive" : "optimized", result.size(), elapsed);
+
+        return result;
     }
 
     // ─── Private Helpers ────────────────────────────────────────────────────────

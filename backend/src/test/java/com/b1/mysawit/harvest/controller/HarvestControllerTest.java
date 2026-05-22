@@ -59,6 +59,9 @@ class HarvestControllerTest {
     @MockitoBean
     private JpaMetamodelMappingContext jpaMappingContext;
 
+    @MockitoBean
+    private com.b1.mysawit.config.DeliveryFeatureInterceptor deliveryFeatureInterceptor;
+
     @Autowired
     private ObjectMapper objectMapper;
 
