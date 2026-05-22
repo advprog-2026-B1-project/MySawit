@@ -166,7 +166,7 @@ class KebunServiceImplTest {
 
             assertThatCode(() -> kebunService.createKebun(KebunCreateRequest.builder()
                     .kodeKebun("KB001").namaKebun("Kebun B")
-                    .luasHektare(new BigDecimal("10.0")).koordinat(adjacentKoordinat)
+                    .koordinat(adjacentKoordinat)
                     .build())).doesNotThrowAnyException();
         }
 
@@ -188,8 +188,7 @@ class KebunServiceImplTest {
         @DisplayName("Given null namaKebun → should throw IllegalArgumentException")
         void givenNullNama_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun(null)
-                    .luasHektare(new BigDecimal("10.5")).koordinat(KOORDINAT_A)
+                    .kodeKebun("KB001").namaKebun(null).koordinat(KOORDINAT_A)
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -201,8 +200,7 @@ class KebunServiceImplTest {
         @DisplayName("Given blank namaKebun → should throw IllegalArgumentException")
         void givenBlankNama_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("   ")
-                    .luasHektare(new BigDecimal("10.5")).koordinat(KOORDINAT_A)
+                    .kodeKebun("KB001").namaKebun("   ").koordinat(KOORDINAT_A)
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -214,8 +212,7 @@ class KebunServiceImplTest {
         @DisplayName("Given null kodeKebun → should throw IllegalArgumentException")
         void givenNullKode_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun(null).namaKebun("Kebun A")
-                    .luasHektare(new BigDecimal("10.5")).koordinat(KOORDINAT_A)
+                    .kodeKebun(null).namaKebun("Kebun A").koordinat(KOORDINAT_A)
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -224,50 +221,10 @@ class KebunServiceImplTest {
         }
 
         @Test
-        @DisplayName("Given zero luasHektare → should throw IllegalArgumentException")
-        void givenZeroLuas_shouldThrowIllegalArgumentException() {
-            KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(BigDecimal.ZERO).koordinat(KOORDINAT_A)
-                    .build();
-
-            assertThatThrownBy(() -> kebunService.createKebun(request))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Luas hektare");
-        }
-
-        @Test
-        @DisplayName("Given negative luasHektare → should throw IllegalArgumentException")
-        void givenNegativeLuas_shouldThrowIllegalArgumentException() {
-            KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(new BigDecimal("-5")).koordinat(KOORDINAT_A)
-                    .build();
-
-            assertThatThrownBy(() -> kebunService.createKebun(request))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Luas hektare");
-        }
-
-        @Test
-        @DisplayName("Given null luasHektare → should throw IllegalArgumentException")
-        void givenNullLuas_shouldThrowIllegalArgumentException() {
-            KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(null).koordinat(KOORDINAT_A)
-                    .build();
-
-            assertThatThrownBy(() -> kebunService.createKebun(request))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Luas hektare");
-        }
-
-        @Test
         @DisplayName("Given null koordinat → should throw IllegalArgumentException")
         void givenNullKoordinat_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(new BigDecimal("10.5")).koordinat(null)
+                    .kodeKebun("KB001").namaKebun("Kebun A").koordinat(null)
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -279,8 +236,7 @@ class KebunServiceImplTest {
         @DisplayName("Given blank koordinat → should throw IllegalArgumentException")
         void givenBlankKoordinat_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(new BigDecimal("10.5")).koordinat("   ")
+                    .kodeKebun("KB001").namaKebun("Kebun A").koordinat("   ")
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -291,7 +247,7 @@ class KebunServiceImplTest {
         private KebunCreateRequest buildCreateRequest(String koordinat) {
             return KebunCreateRequest.builder()
                     .kodeKebun("KB001").namaKebun("Kebun Sawit A")
-                    .luasHektare(new BigDecimal("10.5")).koordinat(koordinat)
+                    .koordinat(koordinat)
                     .build();
         }
     }
@@ -404,11 +360,10 @@ class KebunServiceImplTest {
     class UpdateKebun {
 
         @Test
-        @DisplayName("Given valid update (nama + luas, no koordinat) → should return updated KebunResponse")
+        @DisplayName("Given valid update (nama only, no koordinat) → should return updated KebunResponse with unchanged luas")
         void givenValidUpdate_noKoordinat_shouldReturnUpdatedResponse() {
             KebunUpdateRequest request = KebunUpdateRequest.builder()
                     .namaKebun("Kebun Updated")
-                    .luasHektare(new BigDecimal("15.0"))
                     .build();
 
             when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
@@ -417,7 +372,7 @@ class KebunServiceImplTest {
             KebunResponse result = kebunService.updateKebun(1L, request);
 
             assertThat(result.getNamaKebun()).isEqualTo("Kebun Updated");
-            assertThat(result.getLuasHektare()).isEqualByComparingTo("15.0");
+            assertThat(result.getLuasHektare()).isEqualByComparingTo("10.5");
             // Tidak ada perubahan koordinat → findAllKoordinatExcluding tidak boleh dipanggil
             verify(kebunRepository, never()).findAllKoordinatExcluding(any());
         }
@@ -487,13 +442,20 @@ class KebunServiceImplTest {
         }
 
         @Test
-        @DisplayName("Given negative luasHektare in update → should throw IllegalArgumentException")
-        void givenNegativeLuasUpdate_shouldThrowIllegalArgumentException() {
-            // validator gagal sebelum findById → tidak perlu stub apapun
-            assertThatThrownBy(() -> kebunService.updateKebun(1L,
-                    KebunUpdateRequest.builder().luasHektare(new BigDecimal("-1")).build()))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Luas hektare");
+        @DisplayName("Given update koordinat → luas recalculated from new koordinat")
+        void givenUpdateKoordinat_luasShouldBeRecalculated() {
+            String newKoordinat = "[(0,0),(200,0),(200,200),(0,200)]"; // 200x200 = 4 ha
+            KebunUpdateRequest request = KebunUpdateRequest.builder()
+                    .koordinat(newKoordinat)
+                    .build();
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(kebunRepository.findAllKoordinatExcluding(1L)).thenReturn(List.of());
+            when(kebunRepository.save(any(Kebun.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            KebunResponse result = kebunService.updateKebun(1L, request);
+
+            assertThat(result.getLuasHektare()).isEqualByComparingTo("4.00");
         }
     }
 

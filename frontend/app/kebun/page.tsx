@@ -150,20 +150,19 @@ export default function KebunListPage() {
                             <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Kode</th>
                             <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Nama Kebun</th>
                             <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Luas (Ha)</th>
-                            <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Koordinat</th>
                             <th className="px-5 py-3 text-xs font-semibold text-bone/40 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="bg-ink-muted divide-y divide-white/5">
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="px-5 py-12 text-center text-bone/30 text-sm">
+                                <td colSpan={4} className="px-5 py-12 text-center text-bone/30 text-sm">
                                     Memuat data...
                                 </td>
                             </tr>
                         ) : kebunList.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-5 py-12 text-center text-bone/30 text-sm">
+                                <td colSpan={4} className="px-5 py-12 text-center text-bone/30 text-sm">
                                     Tidak ada kebun ditemukan.
                                 </td>
                             </tr>
@@ -176,7 +175,6 @@ export default function KebunListPage() {
                                     <td className="px-5 py-3.5 font-mono text-xs text-bone/50">{kebun.kodeKebun}</td>
                                     <td className="px-5 py-3.5 font-medium text-bone">{kebun.namaKebun}</td>
                                     <td className="px-5 py-3.5 text-bone/70">{kebun.luasHektare} ha</td>
-                                    <td className="px-5 py-3.5 text-xs text-bone/40 max-w-[180px] truncate">{kebun.koordinat}</td>
                                     <td className="px-5 py-3.5">
                                         <div className="flex items-center gap-2">
                                             <Link
