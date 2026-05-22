@@ -3,13 +3,10 @@ package com.b1.mysawit.harvest.controller;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.harvest.dto.HarvestRequest;
 import com.b1.mysawit.harvest.dto.HarvestResponse;
-import com.b1.mysawit.harvest.dto.RejectRequest;
 import com.b1.mysawit.harvest.service.HarvestService;
 import com.b1.mysawit.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -17,9 +14,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/harvest")
 @RequiredArgsConstructor
@@ -29,14 +29,6 @@ public class HarvestController {
     private final UserRepository userRepository;
 
     private User getCurrentUser() {
-        // =========================================================
-        // UNTUK TESTING SEMENTARA!
-        // =========================================================
-
-        // 2 = Mandor
-        // Sisanya buruh
-//        return userRepository.findById(3L)
-//                .orElseThrow(() -> new IllegalStateException("User mock tidak ditemukan di DB"));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalStateException("Authentication required");
@@ -66,9 +58,16 @@ public class HarvestController {
         return user.getRole() == User.Role.Mandor;
     }
 
+    private boolean validateUserBuruh(User user) {
+        return user.getRole() == User.Role.Buruh;
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<HarvestResponse> submitHarvest(@ModelAttribute HarvestRequest request) {
         User currentUser = getCurrentUser();
+        if (!validateUserBuruh(currentUser)) {
+            throw new AccessDeniedException("Anda tidak memiliki akses untuk melaporkan hasil panen");
+        }
         HarvestResponse response = harvestService.createHarvest(currentUser, request);
         return ResponseEntity.ok(response);
     }
@@ -79,16 +78,16 @@ public class HarvestController {
         if (validateUserMandor(currentUser)) {
             return ResponseEntity.ok(harvestService.approveHarvest(id, currentUser));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        throw new AccessDeniedException("Anda tidak memiliki akses untuk menyetujui hasil panen");
     }
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<HarvestResponse> rejectHarvest(@PathVariable Long id, @RequestBody RejectRequest request) {
+    public ResponseEntity<HarvestResponse> rejectHarvest(@PathVariable Long id, @RequestBody Map<String, String> request) {
         User currentUser = getCurrentUser();
         if (validateUserMandor(currentUser)) {
-            return ResponseEntity.ok(harvestService.rejectHarvest(id, request.getAlasan(), currentUser));
+            return ResponseEntity.ok(harvestService.rejectHarvest(id, request.get("alasan"), currentUser));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        throw new AccessDeniedException("Anda tidak memiliki akses untuk menolak hasil panen");
     }
 
     @GetMapping("/me")
@@ -98,6 +97,9 @@ public class HarvestController {
             @RequestParam(required = false) String status
     ) {
         User currentUser = getCurrentUser();
+        if (!validateUserBuruh(currentUser)) {
+            throw new AccessDeniedException("Anda tidak memiliki akses untuk melihat hasil panen pribadi");
+        }
         List<HarvestResponse> history = harvestService.getMyHarvestHistory(currentUser, startDate, endDate, status);
         return ResponseEntity.ok(history);
     }

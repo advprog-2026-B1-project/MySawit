@@ -1,6 +1,7 @@
 package com.b1.mysawit.kebun.service;
 
 import com.b1.mysawit.auth.facade.UserFacade;
+import com.b1.mysawit.auth.facade.UserSummary;
 import com.b1.mysawit.common.exception.BusinessRuleViolationException;
 import com.b1.mysawit.common.exception.DuplicateResourceException;
 import com.b1.mysawit.common.exception.ResourceNotFoundException;
@@ -9,6 +10,8 @@ import com.b1.mysawit.domain.Kebun;
 import com.b1.mysawit.domain.MandorAssignment;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.kebun.dto.KebunCreateRequest;
+import com.b1.mysawit.kebun.dto.KebunDashboardItem;
+import com.b1.mysawit.kebun.dto.KebunDetailResponse;
 import com.b1.mysawit.kebun.dto.KebunKoordinatProjection;
 import com.b1.mysawit.kebun.dto.KebunResponse;
 import com.b1.mysawit.kebun.dto.KebunUpdateRequest;
@@ -163,7 +166,7 @@ class KebunServiceImplTest {
 
             assertThatCode(() -> kebunService.createKebun(KebunCreateRequest.builder()
                     .kodeKebun("KB001").namaKebun("Kebun B")
-                    .luasHektare(new BigDecimal("10.0")).koordinat(adjacentKoordinat)
+                    .koordinat(adjacentKoordinat)
                     .build())).doesNotThrowAnyException();
         }
 
@@ -185,8 +188,7 @@ class KebunServiceImplTest {
         @DisplayName("Given null namaKebun → should throw IllegalArgumentException")
         void givenNullNama_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun(null)
-                    .luasHektare(new BigDecimal("10.5")).koordinat(KOORDINAT_A)
+                    .kodeKebun("KB001").namaKebun(null).koordinat(KOORDINAT_A)
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -198,8 +200,7 @@ class KebunServiceImplTest {
         @DisplayName("Given blank namaKebun → should throw IllegalArgumentException")
         void givenBlankNama_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("   ")
-                    .luasHektare(new BigDecimal("10.5")).koordinat(KOORDINAT_A)
+                    .kodeKebun("KB001").namaKebun("   ").koordinat(KOORDINAT_A)
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -211,8 +212,7 @@ class KebunServiceImplTest {
         @DisplayName("Given null kodeKebun → should throw IllegalArgumentException")
         void givenNullKode_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun(null).namaKebun("Kebun A")
-                    .luasHektare(new BigDecimal("10.5")).koordinat(KOORDINAT_A)
+                    .kodeKebun(null).namaKebun("Kebun A").koordinat(KOORDINAT_A)
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -221,50 +221,10 @@ class KebunServiceImplTest {
         }
 
         @Test
-        @DisplayName("Given zero luasHektare → should throw IllegalArgumentException")
-        void givenZeroLuas_shouldThrowIllegalArgumentException() {
-            KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(BigDecimal.ZERO).koordinat(KOORDINAT_A)
-                    .build();
-
-            assertThatThrownBy(() -> kebunService.createKebun(request))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Luas hektare");
-        }
-
-        @Test
-        @DisplayName("Given negative luasHektare → should throw IllegalArgumentException")
-        void givenNegativeLuas_shouldThrowIllegalArgumentException() {
-            KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(new BigDecimal("-5")).koordinat(KOORDINAT_A)
-                    .build();
-
-            assertThatThrownBy(() -> kebunService.createKebun(request))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Luas hektare");
-        }
-
-        @Test
-        @DisplayName("Given null luasHektare → should throw IllegalArgumentException")
-        void givenNullLuas_shouldThrowIllegalArgumentException() {
-            KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(null).koordinat(KOORDINAT_A)
-                    .build();
-
-            assertThatThrownBy(() -> kebunService.createKebun(request))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Luas hektare");
-        }
-
-        @Test
         @DisplayName("Given null koordinat → should throw IllegalArgumentException")
         void givenNullKoordinat_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(new BigDecimal("10.5")).koordinat(null)
+                    .kodeKebun("KB001").namaKebun("Kebun A").koordinat(null)
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -276,8 +236,7 @@ class KebunServiceImplTest {
         @DisplayName("Given blank koordinat → should throw IllegalArgumentException")
         void givenBlankKoordinat_shouldThrowIllegalArgumentException() {
             KebunCreateRequest request = KebunCreateRequest.builder()
-                    .kodeKebun("KB001").namaKebun("Kebun A")
-                    .luasHektare(new BigDecimal("10.5")).koordinat("   ")
+                    .kodeKebun("KB001").namaKebun("Kebun A").koordinat("   ")
                     .build();
 
             assertThatThrownBy(() -> kebunService.createKebun(request))
@@ -288,7 +247,7 @@ class KebunServiceImplTest {
         private KebunCreateRequest buildCreateRequest(String koordinat) {
             return KebunCreateRequest.builder()
                     .kodeKebun("KB001").namaKebun("Kebun Sawit A")
-                    .luasHektare(new BigDecimal("10.5")).koordinat(koordinat)
+                    .koordinat(koordinat)
                     .build();
         }
     }
@@ -401,11 +360,10 @@ class KebunServiceImplTest {
     class UpdateKebun {
 
         @Test
-        @DisplayName("Given valid update (nama + luas, no koordinat) → should return updated KebunResponse")
+        @DisplayName("Given valid update (nama only, no koordinat) → should return updated KebunResponse with unchanged luas")
         void givenValidUpdate_noKoordinat_shouldReturnUpdatedResponse() {
             KebunUpdateRequest request = KebunUpdateRequest.builder()
                     .namaKebun("Kebun Updated")
-                    .luasHektare(new BigDecimal("15.0"))
                     .build();
 
             when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
@@ -414,7 +372,7 @@ class KebunServiceImplTest {
             KebunResponse result = kebunService.updateKebun(1L, request);
 
             assertThat(result.getNamaKebun()).isEqualTo("Kebun Updated");
-            assertThat(result.getLuasHektare()).isEqualByComparingTo("15.0");
+            assertThat(result.getLuasHektare()).isEqualByComparingTo("10.5");
             // Tidak ada perubahan koordinat → findAllKoordinatExcluding tidak boleh dipanggil
             verify(kebunRepository, never()).findAllKoordinatExcluding(any());
         }
@@ -484,13 +442,20 @@ class KebunServiceImplTest {
         }
 
         @Test
-        @DisplayName("Given negative luasHektare in update → should throw IllegalArgumentException")
-        void givenNegativeLuasUpdate_shouldThrowIllegalArgumentException() {
-            // validator gagal sebelum findById → tidak perlu stub apapun
-            assertThatThrownBy(() -> kebunService.updateKebun(1L,
-                    KebunUpdateRequest.builder().luasHektare(new BigDecimal("-1")).build()))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Luas hektare");
+        @DisplayName("Given update koordinat → luas recalculated from new koordinat")
+        void givenUpdateKoordinat_luasShouldBeRecalculated() {
+            String newKoordinat = "[(0,0),(200,0),(200,200),(0,200)]"; // 200x200 = 4 ha
+            KebunUpdateRequest request = KebunUpdateRequest.builder()
+                    .koordinat(newKoordinat)
+                    .build();
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(kebunRepository.findAllKoordinatExcluding(1L)).thenReturn(List.of());
+            when(kebunRepository.save(any(Kebun.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            KebunResponse result = kebunService.updateKebun(1L, request);
+
+            assertThat(result.getLuasHektare()).isEqualByComparingTo("4.00");
         }
     }
 
@@ -708,6 +673,98 @@ class KebunServiceImplTest {
     }
 
     @Nested
+    @DisplayName("getKebunDetail()")
+    class GetKebunDetail {
+
+        @Test
+        @DisplayName("Given existing kebun with active mandor and supir → should return full detail")
+        void givenKebunWithMandorAndSupir_shouldReturnFullDetail() {
+            User mandorUser = buildUser(10L, "Budi Mandor", "budi@test.com");
+            User supirUser = buildUser(20L, "Andi Supir", "andi@test.com");
+
+            MandorAssignment mandorAssignment = MandorAssignment.builder()
+                    .mandor(mandorUser).kebun(kebunSample).assignedAt(OffsetDateTime.now()).build();
+            DriverAssignment driverAssignment = DriverAssignment.builder()
+                    .driver(supirUser).kebun(kebunSample).assignedAt(OffsetDateTime.now()).build();
+
+            UserSummary mandorSummary = new UserSummary(10L, "Budi Mandor", "budi@test.com");
+            UserSummary supirSummary = new UserSummary(20L, "Andi Supir", "andi@test.com");
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(mandorAssignmentRepository.findByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(Optional.of(mandorAssignment));
+            when(userFacade.findUserSummaryById(10L)).thenReturn(Optional.of(mandorSummary));
+            when(driverAssignmentRepository.findAllByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(List.of(driverAssignment));
+            when(userFacade.findUserSummariesByIds(List.of(20L), null))
+                    .thenReturn(List.of(supirSummary));
+
+            KebunDetailResponse result = kebunService.getKebunDetail(1L, null);
+
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getMandor()).isNotNull();
+            assertThat(result.getMandor().getNama()).isEqualTo("Budi Mandor");
+            assertThat(result.getSupirList()).hasSize(1);
+            assertThat(result.getSupirList().get(0).getNama()).isEqualTo("Andi Supir");
+        }
+
+        @Test
+        @DisplayName("Given kebun with no active mandor → mandor field should be null")
+        void givenKebunWithNoActiveMandor_shouldReturnNullMandor() {
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(mandorAssignmentRepository.findByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(Optional.empty());
+            when(driverAssignmentRepository.findAllByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(List.of());
+            when(userFacade.findUserSummariesByIds(List.of(), null)).thenReturn(List.of());
+
+            KebunDetailResponse result = kebunService.getKebunDetail(1L, null);
+
+            assertThat(result.getMandor()).isNull();
+            assertThat(result.getSupirList()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Given searchNamaSupir → should delegate filter to userFacade")
+        void givenSearchNamaSupir_shouldPassFilterToFacade() {
+            User supirUser = buildUser(20L, "Andi Supir", "andi@test.com");
+            DriverAssignment driverAssignment = DriverAssignment.builder()
+                    .driver(supirUser).kebun(kebunSample).assignedAt(OffsetDateTime.now()).build();
+
+            when(kebunRepository.findById(1L)).thenReturn(Optional.of(kebunSample));
+            when(mandorAssignmentRepository.findByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(Optional.empty());
+            when(driverAssignmentRepository.findAllByKebunIdAndUnassignedAtIsNull(1L))
+                    .thenReturn(List.of(driverAssignment));
+            when(userFacade.findUserSummariesByIds(List.of(20L), "andi"))
+                    .thenReturn(List.of(new UserSummary(20L, "Andi Supir", "andi@test.com")));
+
+            KebunDetailResponse result = kebunService.getKebunDetail(1L, "andi");
+
+            verify(userFacade).findUserSummariesByIds(List.of(20L), "andi");
+            assertThat(result.getSupirList()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Given non-existing kebun id → should throw ResourceNotFoundException")
+        void givenNonExistingId_shouldThrowResourceNotFoundException() {
+            when(kebunRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> kebunService.getKebunDetail(99L, null))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("99");
+        }
+
+        private User buildUser(Long id, String nama, String email) {
+            User u = new User();
+            u.setId(id);
+            u.setNama(nama);
+            u.setEmail(email);
+            return u;
+        }
+    }
+
+    @Nested
     @DisplayName("deleteKebun()")
     class DeleteKebun {
 
@@ -746,6 +803,61 @@ class KebunServiceImplTest {
                     .hasMessageContaining("99");
 
             verify(kebunRepository, never()).delete(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("getDashboard()")
+    class GetDashboard {
+
+        @Test
+        @DisplayName("naive=false → uses optimized single-query repository method")
+        void givenOptimizedStrategy_shouldUseOptimizedQuery() {
+            KebunDashboardItem item = KebunDashboardItem.builder()
+                    .id(1L).kodeKebun("KB-001").namaKebun("Kebun A")
+                    .luasHektare(new BigDecimal("50.0"))
+                    .countMandorAktif(1L).countSupirAktif(2L).build();
+            when(kebunRepository.findDashboardOptimized()).thenReturn(List.of(item));
+
+            List<KebunDashboardItem> result = kebunService.getDashboard(false);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getCountMandorAktif()).isEqualTo(1L);
+            assertThat(result.get(0).getCountSupirAktif()).isEqualTo(2L);
+            verify(kebunRepository, times(1)).findDashboardOptimized();
+            verify(kebunRepository, never()).findAll();
+        }
+
+        @Test
+        @DisplayName("naive=true → uses N+1 per-kebun queries")
+        void givenNaiveStrategy_shouldUsePerKebunQueries() {
+            Kebun k = new Kebun();
+            k.setId(1L);
+            k.setKodeKebun("KB-001");
+            k.setNamaKebun("Kebun A");
+            k.setLuasHektare(new BigDecimal("50.0"));
+
+            when(kebunRepository.findAll()).thenReturn(List.of(k));
+            when(mandorAssignmentRepository.countByKebunIdAndUnassignedAtIsNull(1L)).thenReturn(1L);
+            when(driverAssignmentRepository.countByKebunIdAndUnassignedAtIsNull(1L)).thenReturn(2L);
+
+            List<KebunDashboardItem> result = kebunService.getDashboard(true);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getCountMandorAktif()).isEqualTo(1L);
+            assertThat(result.get(0).getCountSupirAktif()).isEqualTo(2L);
+            verify(kebunRepository, times(1)).findAll();
+            verify(kebunRepository, never()).findDashboardOptimized();
+        }
+
+        @Test
+        @DisplayName("naive=false with empty database → returns empty list")
+        void givenEmptyDatabase_optimized_shouldReturnEmptyList() {
+            when(kebunRepository.findDashboardOptimized()).thenReturn(List.of());
+
+            List<KebunDashboardItem> result = kebunService.getDashboard(false);
+
+            assertThat(result).isEmpty();
         }
     }
 }

@@ -41,7 +41,7 @@ export default function RiwayatPanenBuruh() {
                 if (endDate) queryParams.append("endDate", endDate);
                 if (statusFilter) queryParams.append("status", statusFilter);
 
-                const response = await fetch(`http://localhost:8080/api/harvest/me?${queryParams.toString()}`);
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/harvest/me?${queryParams.toString()}`, { credentials: "include" });
 
                 if (response.ok) {
                     const data = await response.json();

@@ -28,8 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,6 +57,9 @@ class HarvestControllerTest {
     @MockitoBean
     private JpaMetamodelMappingContext jpaMappingContext;
 
+    @MockitoBean
+    private com.b1.mysawit.config.DeliveryFeatureInterceptor deliveryFeatureInterceptor;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -70,7 +71,8 @@ class HarvestControllerTest {
     void setUp() {
         dummyUser = new User();
         dummyUser.setId(1L);
-        dummyUser.setRole(User.Role.Mandor);
+        // default test user is a Buruh (worker)
+        dummyUser.setRole(User.Role.Buruh);
         dummyUser.setEmail("test@example.com");
 
         authentication = mock(Authentication.class);
@@ -86,19 +88,19 @@ class HarvestControllerTest {
     }
 
     @Test
-    void getCurrentUser_WhenNotAuthenticated_ThrowsException() {
+    void getCurrentUser_WhenNotAuthenticated_ThrowsException() throws Exception {
         when(authentication.isAuthenticated()).thenReturn(false);
-        Exception ex = assertThrows(Exception.class, () -> mockMvc.perform(get("/api/harvest/me")));
-        assertTrue(ex.getCause() instanceof IllegalStateException);
-        assertTrue(ex.getCause().getMessage().contains("Authentication required"));
+        mockMvc.perform(get("/api/harvest/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Authentication required"));
     }
 
     @Test
-    void getCurrentUser_WhenAuthIsNull_ThrowsException() {
+    void getCurrentUser_WhenAuthIsNull_ThrowsException() throws Exception {
         when(securityContext.getAuthentication()).thenReturn(null);
-        Exception ex = assertThrows(Exception.class, () -> mockMvc.perform(get("/api/harvest/me")));
-        assertTrue(ex.getCause() instanceof IllegalStateException);
-        assertTrue(ex.getCause().getMessage().contains("Authentication required"));
+        mockMvc.perform(get("/api/harvest/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Authentication required"));
     }
 
     @Test
@@ -120,24 +122,26 @@ class HarvestControllerTest {
     }
 
     @Test
-    void getCurrentUser_WithUnknownPrincipal_ThrowsException() {
+    void getCurrentUser_WithUnknownPrincipal_ThrowsException() throws Exception {
         when(authentication.getPrincipal()).thenReturn(new Object());
-        Exception ex = assertThrows(Exception.class, () -> mockMvc.perform(get("/api/harvest/me")));
-        assertTrue(ex.getCause() instanceof IllegalStateException);
-        assertTrue(ex.getCause().getMessage().contains("Could not extract email"));
+        mockMvc.perform(get("/api/harvest/me"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Could not extract email from authentication context"));
     }
 
     @Test
-    void getCurrentUser_UserNotFoundInDb_ThrowsException() {
+    void getCurrentUser_UserNotFoundInDb_ThrowsException() throws Exception {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-        Exception ex = assertThrows(Exception.class, () -> mockMvc.perform(get("/api/harvest/me")));
-        assertTrue(ex.getCause() instanceof IllegalStateException);
-        assertTrue(ex.getCause().getMessage().contains("User not found"));
+        mockMvc.perform(get("/api/harvest/me"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("User not found in database"));
     }
 
     @Test
     @DisplayName("GET /api/harvest/mandor - Berhasil mengambil riwayat mandor")
     void getHarvestsForMandor_Success() throws Exception {
+        // make the current user a Mandor for this test
+        dummyUser.setRole(User.Role.Mandor);
         mockMvc.perform(get("/api/harvest/mandor?status=Pending&searchNama=Budi"))
                 .andExpect(status().isOk());
     }
@@ -165,6 +169,7 @@ class HarvestControllerTest {
     @Test
     @DisplayName("POST /api/harvest - Berhasil submit harvest dengan file")
     void submitHarvest_Success() throws Exception {
+        dummyUser.setRole(User.Role.Buruh);
         HarvestResponse response = HarvestResponse.builder().id(1L).status("Pending").build();
         MockMultipartFile photo = new MockMultipartFile("photos", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "image content".getBytes());
         when(harvestService.createHarvest(any(User.class), any())).thenReturn(response);
@@ -176,9 +181,42 @@ class HarvestControllerTest {
                 .andExpect(status().isOk());
     }
 
+            @Test
+            @DisplayName("POST /api/harvest - Konflik jika service melempar IllegalStateException")
+            void submitHarvest_Conflict_WhenServiceThrows() throws Exception {
+                dummyUser.setRole(User.Role.Buruh);
+        MockMultipartFile photo = new MockMultipartFile("photos", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "image content".getBytes());
+        when(harvestService.createHarvest(any(User.class), any()))
+                .thenThrow(new IllegalStateException("Buruh hanya dapat melaporkan hasil sekali sehari"));
+
+        mockMvc.perform(multipart("/api/harvest")
+                    .file(photo)
+                    .param("kilogram", "100.5")
+                    .param("berita", "Panen lancar"))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.message").value("Buruh hanya dapat melaporkan hasil sekali sehari"));
+            }
+
+            @Test
+            @DisplayName("POST /api/harvest - Internal server error jika service melempar RuntimeException")
+            void submitHarvest_InternalServerError_WhenServiceThrowsRuntimeException() throws Exception {
+                    dummyUser.setRole(User.Role.Buruh);
+            MockMultipartFile photo = new MockMultipartFile("photos", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "image content".getBytes());
+            when(harvestService.createHarvest(any(User.class), any()))
+                .thenThrow(new RuntimeException("Gagal upload ke Supabase: upstream error"));
+
+            mockMvc.perform(multipart("/api/harvest")
+                    .file(photo)
+                    .param("kilogram", "100.5")
+                    .param("berita", "Panen lancar"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Gagal upload ke Supabase: upstream error"));
+            }
+
     @Test
     @DisplayName("PUT /api/harvest/{id}/approve - Berhasil approve")
     void approveHarvest_Success() throws Exception {
+        dummyUser.setRole(User.Role.Mandor);
         HarvestResponse response = HarvestResponse.builder().id(1L).status("Approved").build();
         when(harvestService.approveHarvest(eq(1L), any(User.class))).thenReturn(response);
         mockMvc.perform(put("/api/harvest/1/approve")).andExpect(status().isOk());
@@ -187,6 +225,7 @@ class HarvestControllerTest {
     @Test
     @DisplayName("PUT /api/harvest/{id}/reject - Berhasil reject dengan alasan")
     void rejectHarvest_Success() throws Exception {
+        dummyUser.setRole(User.Role.Mandor);
         HarvestResponse response = HarvestResponse.builder().id(1L).status("Rejected").rejectionReason("Foto kurang jelas").build();
         var rejectRequest = Collections.singletonMap("alasan", "Foto kurang jelas");
         when(harvestService.rejectHarvest(eq(1L), anyString(), any(User.class))).thenReturn(response);
@@ -199,7 +238,32 @@ class HarvestControllerTest {
     @Test
     @DisplayName("GET /api/harvest/me - Berhasil mengambil riwayat")
     void getMyHarvests_Success() throws Exception {
+        dummyUser.setRole(User.Role.Buruh);
         when(harvestService.getMyHarvestHistory(any(User.class), isNull(), isNull(), isNull())).thenReturn(List.of());
         mockMvc.perform(get("/api/harvest/me")).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("POST /api/harvest - Forbidden jika bukan Buruh")
+    void submitHarvest_Forbidden_WhenNotBuruh() throws Exception {
+        dummyUser.setRole(User.Role.Mandor);
+        MockMultipartFile photo = new MockMultipartFile("photos", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "image content".getBytes());
+
+        mockMvc.perform(multipart("/api/harvest")
+                        .file(photo)
+                        .param("kilogram", "100.5")
+                        .param("berita", "Panen lancar"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Anda tidak memiliki akses untuk melaporkan hasil panen"));
+    }
+
+    @Test
+    @DisplayName("GET /api/harvest/me - Forbidden jika bukan Buruh")
+    void getMyHarvests_Forbidden_WhenNotBuruh() throws Exception {
+        dummyUser.setRole(User.Role.Mandor);
+
+        mockMvc.perform(get("/api/harvest/me"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Anda tidak memiliki akses untuk melihat hasil panen pribadi"));
     }
 }

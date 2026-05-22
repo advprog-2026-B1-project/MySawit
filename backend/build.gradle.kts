@@ -56,11 +56,14 @@ repositories {
 }
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -68,6 +71,7 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
@@ -84,4 +88,18 @@ tasks.named<Test>("test") {
 
 tasks.named("sonar") {
     dependsOn(tasks.test)
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val envFile = file("../.env")
+    if (envFile.exists()) {
+        envFile.readLines().forEach {
+            if (it.isNotBlank() && !it.startsWith("#")) {
+                val split = it.split("=", limit = 2)
+                if (split.size == 2) {
+                    environment(split[0].trim(), split[1].trim().removeSurrounding("\""))
+                }
+            }
+        }
+    }
 }

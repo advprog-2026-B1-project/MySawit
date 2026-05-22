@@ -23,6 +23,7 @@ export default function ProfilSupirPage() {
             setLoading(false);
         };
         if (driver) fetch();
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         else setLoading(false);
     }, [driverId, driver]);
 

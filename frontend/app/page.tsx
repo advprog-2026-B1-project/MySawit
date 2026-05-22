@@ -1,79 +1,35 @@
 import Link from "next/link";
 
-const quickLinks = [
-    {
-        role: "Buruh",
-        description: "Laporan hasil panen harian dan riwayat pengiriman",
-        href: "/harvest/buruh/lapor",
-        primary: true,
-    },
-    {
-        role: "Mandor",
-        description: "Review dan approval laporan panen dari buruh",
-        href: "/harvest/mandor",
-        primary: true,
-    },
-    {
-        role: "Admin",
-        description: "Kelola data kebun, mandor, dan supir",
-        href: "/kebun",
-        primary: false,
-    },
-];
-
-const stats = [
-    { label: "Modul Aktif", value: "3" },
-    { label: "Endpoint API", value: "12+" },
-    { label: "Role Pengguna", value: "4" },
-];
-
 export default function Home() {
-    return (
-        <div className="min-h-full px-8 py-12 max-w-3xl">
+  return (
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-900 selection:bg-teal-500/30">
+      {/* Decorative background elements */}
+      <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-teal-500/20 blur-[100px]"></div>
+      <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-emerald-500/20 blur-[100px]"></div>
 
-            {/* Header */}
-            <div className="mb-12">
-                <p className="text-xs font-semibold text-verdant uppercase tracking-wider mb-3">
-                    Platform Manajemen
-                </p>
-                <h1 className="text-4xl font-bold text-bone mb-4 leading-tight">
-                    Selamat datang di<br />
-                    <span className="text-verdant">MySawit</span>
-                </h1>
-                <p className="text-bone/50 text-base max-w-md">
-                    Sistem terintegrasi untuk manajemen kebun sawit — dari pencatatan panen hingga pengiriman hasil produksi.
-                </p>
-            </div>
+      <div className="relative z-10 w-full max-w-2xl p-8 sm:p-12 text-center backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl rounded-3xl transition-all duration-300 hover:shadow-teal-500/10">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-6">
+          Selamat Datang di <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">MySawit</span>
+        </h1>
+        <p className="text-lg text-slate-400 mb-10 max-w-xl mx-auto">
+          Platform Manajemen Kebun Sawit Terintegrasi. Pantau hasil panen, kelola pekerja, dan tingkatkan efisiensi perkebunan Anda.
+        </p>
 
-            {/* Stats row */}
-            <div className="flex gap-6 mb-12">
-                {stats.map((s) => (
-                    <div key={s.label} className="flex flex-col">
-                        <span className="text-2xl font-bold text-bone">{s.value}</span>
-                        <span className="text-xs text-bone/40 mt-0.5">{s.label}</span>
-                    </div>
-                ))}
-            </div>
-
-            {/* Role cards */}
-            <div className="space-y-3">
-                <p className="text-xs font-semibold text-bone/30 uppercase tracking-wider mb-4">Masuk sebagai</p>
-                {quickLinks.map((link) => (
-                    <Link
-                        key={link.role}
-                        href={link.href}
-                        className="flex items-center justify-between px-5 py-4 rounded-lg border border-white/10 bg-ink-muted hover:border-verdant/30 hover:bg-verdant-soft transition group"
-                    >
-                        <div>
-                            <p className="text-sm font-semibold text-bone group-hover:text-verdant transition">
-                                {link.role}
-                            </p>
-                            <p className="text-xs text-bone/40 mt-0.5">{link.description}</p>
-                        </div>
-                        <span className="text-bone/20 group-hover:text-verdant transition text-lg">→</span>
-                    </Link>
-                ))}
-            </div>
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-10">
+          <Link 
+            href="/auth/login" 
+            className="w-full sm:w-auto px-8 py-3.5 bg-teal-500 text-white font-semibold rounded-xl transition-all hover:bg-teal-400 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+          >
+            Masuk Akun
+          </Link>
+          <Link 
+            href="/auth/register" 
+            className="w-full sm:w-auto px-8 py-3.5 bg-white/10 border border-white/20 text-white font-semibold rounded-xl transition-all hover:bg-white/20 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-slate-900"
+          >
+            Daftar Baru
+          </Link>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
