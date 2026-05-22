@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface WorkerAssignmentRepository extends JpaRepository<WorkerAssignment, Long> {
     Optional<WorkerAssignment> findByWorkerIdAndUnassignedAtIsNull(Long workerId);
+    void deleteByWorkerId(Long workerId);
+    void deleteByMandorId(Long mandorId);
 }

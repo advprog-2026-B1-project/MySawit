@@ -304,11 +304,9 @@ public class KebunServiceImpl implements KebunService {
         if (kebunValidator.hasValue(request.getNamaKebun())) {
             kebun.setNamaKebun(request.getNamaKebun().trim());
         }
-        if (request.getLuasHektare() != null) {
-            kebun.setLuasHektare(request.getLuasHektare());
-        }
         if (request.getKoordinat() != null) {
             kebun.setKoordinat(request.getKoordinat());
+            kebun.setLuasHektare(kebunMapper.calculateLuas(request.getKoordinat()));
         }
     }
 

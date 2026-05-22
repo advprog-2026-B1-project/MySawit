@@ -30,6 +30,7 @@ class UserServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private WorkerAssignmentRepository assignmentRepository;
+    @Mock private com.b1.mysawit.repository.MandorDetailRepository mandorDetailRepository;
     @Mock private PasswordEncoder passwordEncoder;
 
     @InjectMocks private UserService userService;

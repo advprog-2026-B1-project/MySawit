@@ -6,6 +6,7 @@ import com.b1.mysawit.common.exception.BusinessRuleViolationException;
 import com.b1.mysawit.common.exception.ResourceNotFoundException;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.domain.WorkerAssignment;
+import com.b1.mysawit.repository.MandorDetailRepository;
 import com.b1.mysawit.repository.UserRepository;
 import com.b1.mysawit.repository.WorkerAssignmentRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,13 +23,16 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final WorkerAssignmentRepository assignmentRepository;
+    private final MandorDetailRepository mandorDetailRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository,
                        WorkerAssignmentRepository assignmentRepository,
+                       MandorDetailRepository mandorDetailRepository,
                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.assignmentRepository = assignmentRepository;
+        this.mandorDetailRepository = mandorDetailRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
