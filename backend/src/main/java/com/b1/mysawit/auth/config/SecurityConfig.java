@@ -48,12 +48,22 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/register",
                                 "/api/login",
+                                "/api/logout",
                                 "/oauth2/**",
                                 "/login/oauth2/**",
                                 "/error",
                                 "/actuator/**"
                         ).permitAll()
                         .anyRequest().authenticated()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/api/logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(200);
+                        })
                 )
                 .httpBasic(Customizer.withDefaults())
                 .userDetailsService(userDetailsService)
@@ -66,7 +76,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
