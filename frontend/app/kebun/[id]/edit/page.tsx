@@ -46,7 +46,8 @@ export default function KebunEditPage({ params }: { params: Promise<{ id: string
     const router = useRouter();
 
     const [kodeKebun, setKodeKebun] = useState("");
-    const [form, setForm] = useState({ namaKebun: "", luasHektare: "", koordinat: "" });
+    const [form, setForm] = useState({ namaKebun: "", koordinat: "" });
+    const [luasHektare, setLuasHektare] = useState("");
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<FieldError>({});
     const [loading, setLoading] = useState(false);
@@ -61,9 +62,9 @@ export default function KebunEditPage({ params }: { params: Promise<{ id: string
                 if (!res.ok) { setError(`Error ${res.status}`); return; }
                 const data: Kebun = await res.json();
                 setKodeKebun(data.kodeKebun);
+                setLuasHektare(String(data.luasHektare));
                 setForm({
                     namaKebun: data.namaKebun,
-                    luasHektare: String(data.luasHektare),
                     koordinat: data.koordinat ?? "",
                 });
             } catch {
@@ -89,7 +90,6 @@ export default function KebunEditPage({ params }: { params: Promise<{ id: string
 
         const body: Record<string, unknown> = {};
         if (form.namaKebun.trim()) body.namaKebun = form.namaKebun.trim();
-        if (form.luasHektare) body.luasHektare = parseFloat(form.luasHektare);
         if (form.koordinat.trim()) body.koordinat = form.koordinat.trim();
 
         try {
@@ -200,23 +200,21 @@ export default function KebunEditPage({ params }: { params: Promise<{ id: string
                             />
                         </Field>
 
-                        <Field label="Luas (Hektare)" error={fieldErrors.luasHektare}>
-                            <input
-                                type="number"
-                                name="luasHektare"
-                                value={form.luasHektare}
-                                onChange={handleChange}
-                                step="0.01"
-                                min="0.01"
-                                className={inputCls("luasHektare")}
-                            />
-                        </Field>
+                        <div>
+                            <label className="block text-xs font-semibold text-bone/40 uppercase tracking-wider mb-1.5">
+                                Luas (Hektare)
+                            </label>
+                            <div className="w-full bg-ink border border-white/5 text-bone/40 text-sm rounded-md px-3 py-2">
+                                {luasHektare} ha
+                            </div>
+                            <p className="mt-1.5 text-xs text-bone/25">Dikalkulasi otomatis dari koordinat</p>
+                        </div>
                     </div>
 
                     <Field
                         label="Koordinat"
                         error={fieldErrors.koordinat}
-                        hint="Format: [(lat,lon),(lat,lon),(lat,lon),(lat,lon)]"
+                        hint="Format: [(x1,y1),(x2,y2),(x3,y3),(x4,y4)] — luas akan diperbarui otomatis"
                     >
                         <textarea
                             name="koordinat"

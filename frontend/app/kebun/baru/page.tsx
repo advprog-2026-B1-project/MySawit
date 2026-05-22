@@ -42,7 +42,6 @@ export default function KebunBaruPage() {
     const [form, setForm] = useState({
         kodeKebun: "",
         namaKebun: "",
-        luasHektare: "",
         koordinat: "",
     });
     const [error, setError] = useState("");
@@ -69,7 +68,6 @@ export default function KebunBaruPage() {
                 body: JSON.stringify({
                     kodeKebun: form.kodeKebun.trim(),
                     namaKebun: form.namaKebun.trim(),
-                    luasHektare: parseFloat(form.luasHektare),
                     koordinat: form.koordinat.trim(),
                 }),
             });
@@ -144,33 +142,17 @@ export default function KebunBaruPage() {
 
                 {/* Fields */}
                 <div className="px-6 py-5 space-y-5">
-                    <div className="grid grid-cols-2 gap-5">
-                        <Field label="Kode Kebun" required error={fieldErrors.kodeKebun}>
-                            <input
-                                type="text"
-                                name="kodeKebun"
-                                value={form.kodeKebun}
-                                onChange={handleChange}
-                                placeholder="KB-001"
-                                className={inputCls("kodeKebun")}
-                                required
-                            />
-                        </Field>
-
-                        <Field label="Luas (Hektare)" required error={fieldErrors.luasHektare}>
-                            <input
-                                type="number"
-                                name="luasHektare"
-                                value={form.luasHektare}
-                                onChange={handleChange}
-                                placeholder="50.5"
-                                step="0.01"
-                                min="0.01"
-                                className={inputCls("luasHektare")}
-                                required
-                            />
-                        </Field>
-                    </div>
+                    <Field label="Kode Kebun" required error={fieldErrors.kodeKebun}>
+                        <input
+                            type="text"
+                            name="kodeKebun"
+                            value={form.kodeKebun}
+                            onChange={handleChange}
+                            placeholder="KB-001"
+                            className={inputCls("kodeKebun")}
+                            required
+                        />
+                    </Field>
 
                     <Field label="Nama Kebun" required error={fieldErrors.namaKebun}>
                         <input
@@ -188,7 +170,7 @@ export default function KebunBaruPage() {
                         label="Koordinat"
                         required
                         error={fieldErrors.koordinat}
-                        hint="Format: [(lat,lon),(lat,lon),(lat,lon),(lat,lon)] — 4 titik polygon"
+                        hint="Format: [(x1,y1),(x2,y2),(x3,y3),(x4,y4)] — 4 titik sudut persegi. Luas dikalkulasi otomatis."
                     >
                         <textarea
                             name="koordinat"
