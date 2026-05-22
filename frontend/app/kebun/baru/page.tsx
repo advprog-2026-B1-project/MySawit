@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = "http://localhost:8080";
+const API = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 interface FieldError {
     [key: string]: string;

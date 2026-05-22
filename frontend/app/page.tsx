@@ -29,24 +29,6 @@ export default function Home() {
             Daftar Baru
           </Link>
         </div>
-
-        <div className="pt-8 border-t border-white/10">
-          <p className="text-sm text-slate-400 mb-4">Akses Cepat Dashboard:</p>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Link 
-              href="/harvest/buruh/lapor" 
-              className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-all hover:bg-slate-700 hover:text-white"
-            >
-              Dashboard Buruh
-            </Link>
-            <Link 
-              href="/harvest/mandor" 
-              className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-all hover:bg-slate-700 hover:text-white"
-            >
-              Dashboard Mandor
-            </Link>
-          </div>
-        </div>
       </div>
     </div>
   );

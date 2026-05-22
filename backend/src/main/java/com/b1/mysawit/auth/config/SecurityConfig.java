@@ -42,26 +42,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/register",
-                    "/api/login",
-                    "/oauth2/**",
-                    "/login/oauth2/**",
-                    "/error",
-                    "/actuator/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults())
-            .userDetailsService(userDetailsService)
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/register",
+                                "/api/login",
+                                "/oauth2/**",
+                                "/login/oauth2/**",
+                                "/error",
+                                "/actuator/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
-            );
+                .httpBasic(Customizer.withDefaults())
+                .userDetailsService(userDetailsService)
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .defaultSuccessUrl("https://my-sawit-ten.vercel.app", true)
+                );
 
         return http.build();
     }
@@ -69,14 +70,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "https://my-sawit-ten.vercel.app"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); 
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // apply ke semua endpoint (/**)
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
