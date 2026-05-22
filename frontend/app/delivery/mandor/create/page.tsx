@@ -15,7 +15,7 @@ export default function MandorCreateDelivery() {
     const [mandorId, setMandorId] = useState<number | null>(null);
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/me`, { credentials: "include" })
+        fetch(`/api/me`, { credentials: "include" })
             .then(r => r.ok ? r.json() : null)
             .then(u => { if (u?.id) setMandorId(u.id); })
             .catch(() => {});

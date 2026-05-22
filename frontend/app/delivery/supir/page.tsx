@@ -14,7 +14,7 @@ export default function SupirDeliveryDashboard() {
     const [driverId, setDriverId] = useState<number | null>(null);
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/me`, { credentials: "include" })
+        fetch(`/api/me`, { credentials: "include" })
             .then(r => r.ok ? r.json() : null)
             .then(u => { if (u?.id) setDriverId(u.id); })
             .catch(() => {});
