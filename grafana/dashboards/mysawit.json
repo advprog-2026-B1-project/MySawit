@@ -1,0 +1,191 @@
+{
+  "title": "MySawit - Application Monitoring",
+  "uid": "mysawit-main",
+  "version": 1,
+  "schemaVersion": 38,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Request Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "rate(http_server_requests_seconds_count{job=\"mysawit-spring-boot\"}[1m])",
+          "legendFormat": "{{method}} {{uri}} {{status}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } }
+      }
+    },
+    {
+      "id": 2,
+      "title": "HTTP Response Time P95 (ms)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job=\"mysawit-spring-boot\"}[1m])) * 1000",
+          "legendFormat": "P95 {{uri}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ms", "color": { "mode": "palette-classic" } }
+      }
+    },
+    {
+      "id": 3,
+      "title": "HTTP Error Rate (4xx + 5xx)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "rate(http_server_requests_seconds_count{job=\"mysawit-spring-boot\",status=~\"4..|5..\"}[1m])",
+          "legendFormat": "{{status}} {{uri}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "color": { "fixedColor": "red", "mode": "fixed" } }
+      }
+    },
+    {
+      "id": 4,
+      "title": "JVM Memory Used (MB)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "jvm_memory_used_bytes{job=\"mysawit-spring-boot\",area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "Heap Used"
+        },
+        {
+          "datasource": "Prometheus",
+          "expr": "jvm_memory_max_bytes{job=\"mysawit-spring-boot\",area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "Heap Max"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "MB", "color": { "mode": "palette-classic" } }
+      }
+    },
+    {
+      "id": 5,
+      "title": "DB Connection Pool (HikariCP)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "hikaricp_connections_active{job=\"mysawit-spring-boot\"}",
+          "legendFormat": "Active"
+        },
+        {
+          "datasource": "Prometheus",
+          "expr": "hikaricp_connections_idle{job=\"mysawit-spring-boot\"}",
+          "legendFormat": "Idle"
+        },
+        {
+          "datasource": "Prometheus",
+          "expr": "hikaricp_connections_max{job=\"mysawit-spring-boot\"}",
+          "legendFormat": "Max"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "palette-classic" } }
+      }
+    },
+    {
+      "id": 6,
+      "title": "CPU Usage (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "process_cpu_usage{job=\"mysawit-spring-boot\"} * 100",
+          "legendFormat": "CPU Usage"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" } }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Application Status",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 24, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "up{job=\"mysawit-spring-boot\"}",
+          "legendFormat": "Backend"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "red", "value": 0 }, { "color": "green", "value": 1 }] }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Total Requests (last 1h)",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 24, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "increase(http_server_requests_seconds_count{job=\"mysawit-spring-boot\"}[1h])",
+          "legendFormat": "Requests"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "blue", "value": 0 }] } }
+      }
+    },
+    {
+      "id": 9,
+      "title": "JVM Threads",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 24, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "jvm_threads_live_threads{job=\"mysawit-spring-boot\"}",
+          "legendFormat": "Live Threads"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "green", "value": 0 }] } }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Uptime (seconds)",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 24, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "process_uptime_seconds{job=\"mysawit-spring-boot\"}",
+          "legendFormat": "Uptime"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "green", "value": 0 }] } }
+      }
+    }
+  ]
+}

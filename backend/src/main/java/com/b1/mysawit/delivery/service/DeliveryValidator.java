@@ -6,6 +6,7 @@ import com.b1.mysawit.delivery.dto.UpdateDeliveryStatusRequest;
 import com.b1.mysawit.domain.Delivery;
 import com.b1.mysawit.domain.HasilPanen;
 import com.b1.mysawit.domain.User;
+import com.b1.mysawit.kebun.facade.KebunAssignmentFacade;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -16,11 +17,18 @@ public class DeliveryValidator {
 
     private static final BigDecimal MAX_TRUCK_CAPACITY_KG = new BigDecimal("400");
 
+    private final KebunAssignmentFacade kebunAssignmentFacade;
+
+    public DeliveryValidator(KebunAssignmentFacade kebunAssignmentFacade) {
+        this.kebunAssignmentFacade = kebunAssignmentFacade;
+    }
+
     public void validateCreateDelivery(User mandor, User driver, HasilPanen hasilPanen) {
         requireRole(mandor, User.Role.Mandor, "User is not a mandor");
         requireRole(driver, User.Role.Supir, "User is not a supir");
         requireApprovedHarvest(hasilPanen);
         requireValidCapacity(hasilPanen.getKilogram());
+        kebunAssignmentFacade.validateSameKebun(mandor.getId(), driver.getId());
     }
 
     private void requireApprovedHarvest(HasilPanen hasilPanen) {
