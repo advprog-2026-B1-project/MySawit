@@ -1,6 +1,6 @@
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:../.env[.properties], optional:file:.env[.properties]
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 2
-      maximum-pool-size: 5
+      maximum-pool-size: 50
       connection-timeout: 30000
       idle-timeout: 600000
   jpa:
@@ -18,6 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        generate_statistics: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
   security:
     oauth2:
@@ -29,28 +30,15 @@ spring:
             scope: email, profile
 
 supabase:
-  url: ${SUPABASE_URL:http://localhost-dummy}
-  key: ${SUPABASE_KEY:dummy-key}
-  bucket: ${SUPABASE_BUCKET:dummy-bucket}
+  url: ${SUPABASE_URL}
+  key: ${SUPABASE_KEY}
+  bucket: ${SUPABASE_BUCKET}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: always
-  info:
-    env:
-      enabled: true
-
-info:
-  app:
-    name: MySawit
-    version: 1.0.0
-    description: Platform Manajemen Kebun Sawit
-
-mysawit:
-  features:
-    delivery-enabled: ${MYSAWIT_DELIVERY_ENABLED:true}
+        include: health,prometheus
+  metrics:
+    tags:
+      application: MySawit
