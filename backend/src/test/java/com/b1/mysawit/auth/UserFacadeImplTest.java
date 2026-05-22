@@ -2,6 +2,8 @@ package com.b1.mysawit.auth;
 
 import com.b1.mysawit.auth.facade.UserFacadeImpl;
 import com.b1.mysawit.auth.facade.UserSummary;
+import com.b1.mysawit.common.exception.BusinessRuleViolationException;
+import com.b1.mysawit.common.exception.ResourceNotFoundException;
 import com.b1.mysawit.domain.User;
 import com.b1.mysawit.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -87,6 +90,50 @@ class UserFacadeImplTest {
         List<UserSummary> result = userFacade.findUserSummariesByIds(List.of(1L), null);
 
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void validateMandorExists_Success() {
+        User mandor = buildUser(1L, "Mandor", "mandor@test.com");
+        mandor.setRole(User.Role.Mandor);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mandor));
+
+        userFacade.validateMandorExists(1L);
+    }
+
+    @Test
+    void validateSupirExists_Success() {
+        User supir = buildUser(2L, "Supir", "supir@test.com");
+        supir.setRole(User.Role.Supir);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(supir));
+
+        userFacade.validateSupirExists(2L);
+    }
+
+    @Test
+    void validateMandorExists_NullId() {
+        assertThatThrownBy(() -> userFacade.validateMandorExists(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("tidak boleh kosong");
+    }
+
+    @Test
+    void validateMandorExists_NotFound() {
+        when(userRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userFacade.validateMandorExists(404L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void validateMandorExists_WrongRole() {
+        User buruh = buildUser(3L, "Buruh", "buruh@test.com");
+        buruh.setRole(User.Role.Buruh);
+        when(userRepository.findById(3L)).thenReturn(Optional.of(buruh));
+
+        assertThatThrownBy(() -> userFacade.validateMandorExists(3L))
+                .isInstanceOf(BusinessRuleViolationException.class)
+                .hasMessageContaining("bukan role Mandor");
     }
 
     private User buildUser(Long id, String nama, String email) {

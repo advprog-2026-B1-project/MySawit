@@ -19,8 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +48,30 @@ class UserServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getEmail()).isEqualTo("a@b.com");
+    }
+
+    @Test
+    void testGetAllUsers_WithSearchAndRoleFilters() {
+        User matching = buildUser(1L, "Budi Mandor", "budi@mysawit.com", User.Role.Mandor);
+        User wrongName = buildUser(2L, "Ani Mandor", "ani@mysawit.com", User.Role.Mandor);
+        User wrongEmail = buildUser(3L, "Budi Lain", "budi@example.com", User.Role.Mandor);
+        User wrongRole = buildUser(4L, "Budi Buruh", "budi.buruh@mysawit.com", User.Role.Buruh);
+
+        when(userRepository.findAll()).thenReturn(List.of(matching, wrongName, wrongEmail, wrongRole));
+
+        List<UserResponse> result = userService.getAllUsers("budi", "mysawit", "Mandor");
+
+        assertThat(result).extracting(UserResponse::getId).containsExactly(1L);
+    }
+
+    @Test
+    void testGetAllUsers_BlankFiltersReturnAll() {
+        User user = buildUser(1L, "Budi", "budi@mysawit.com", User.Role.Buruh);
+        when(userRepository.findAll()).thenReturn(List.of(user));
+
+        List<UserResponse> result = userService.getAllUsers(" ", "", null);
+
+        assertThat(result).hasSize(1);
     }
 
     @Test
@@ -88,6 +110,47 @@ class UserServiceTest {
     }
 
     @Test
+    void testAssignWorkerToMandor_MandorNotFound() {
+        User worker = new User(); worker.setId(1L); worker.setRole(User.Role.Buruh);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(worker));
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.assignWorkerToMandor(1L, 99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void testAssignWorkerToMandor_InvalidMandorRole() {
+        User worker = new User(); worker.setId(1L); worker.setRole(User.Role.Buruh);
+        User notMandor = new User(); notMandor.setId(2L); notMandor.setRole(User.Role.Supir);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(worker));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(notMandor));
+
+        assertThatThrownBy(() -> userService.assignWorkerToMandor(1L, 2L))
+                .isInstanceOf(BusinessRuleViolationException.class)
+                .hasMessageContaining("bukan Mandor");
+    }
+
+    @Test
+    void testAssignWorkerToMandor_ReassignmentClosesExistingAssignment() {
+        User worker = new User(); worker.setId(1L); worker.setRole(User.Role.Buruh);
+        User mandor = new User(); mandor.setId(2L); mandor.setRole(User.Role.Mandor);
+        WorkerAssignment existing = new WorkerAssignment();
+        existing.setWorker(worker);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(worker));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(mandor));
+        when(assignmentRepository.findByWorkerIdAndUnassignedAtIsNull(1L)).thenReturn(Optional.of(existing));
+
+        userService.assignWorkerToMandor(1L, 2L);
+
+        assertThat(existing.getUnassignedAt()).isNotNull();
+        verify(assignmentRepository, times(2)).save(any(WorkerAssignment.class));
+    }
+
+    @Test
     void testDeleteUser_Success() {
         lenient().when(userRepository.findById(anyLong())).thenReturn(Optional.of(new User()));
 
@@ -101,6 +164,23 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.deleteUser(1L, 1L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("tidak dapat menghapus");
+    }
+
+    @Test
+    void testDeleteUser_NullTargetId() {
+        assertThatThrownBy(() -> userService.deleteUser(null, 1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("wajib diisi");
+    }
+
+    @Test
+    void testDeleteUser_TargetNotFound() {
+        when(userRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.deleteUser(404L, 1L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(userRepository, never()).deleteById(anyLong());
     }
 
     @Test
@@ -167,5 +247,47 @@ class UserServiceTest {
 
         assertThat(result.getEmail()).isEqualTo("new@test.com");
         assertThat(result.getRole()).isEqualTo("Mandor");
+    }
+
+    @Test
+    void testUpdateUser_WithoutPasswordKeepsExistingPassword() {
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("old@test.com");
+        user.setPasswordHash("old_hash");
+        user.setRole(User.Role.Buruh);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        RegisterRequest req = new RegisterRequest("user1", "new@test.com", "Nama Baru", "", "Supir", null);
+        UserResponse result = userService.updateUser(1L, req);
+
+        assertThat(result.getRole()).isEqualTo("Supir");
+        assertThat(user.getPasswordHash()).isEqualTo("old_hash");
+        verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
+    void testUpdateUser_InvalidRole() {
+        User user = new User();
+        user.setId(1L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        RegisterRequest req = new RegisterRequest("user1", "new@test.com", "Nama Baru", null, "Pemilik", null);
+
+        assertThatThrownBy(() -> userService.updateUser(1L, req))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Role tidak valid");
+    }
+
+    private User buildUser(Long id, String nama, String email, User.Role role) {
+        User user = new User();
+        user.setId(id);
+        user.setNama(nama);
+        user.setEmail(email);
+        user.setRole(role);
+        return user;
     }
 }

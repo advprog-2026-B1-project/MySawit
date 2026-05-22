@@ -20,7 +20,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -85,5 +88,47 @@ class AppControllerTest {
         mockMvc.perform(get("/api/users?role=Mandor"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].role").value("Mandor"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testCreateUserByAdmin() throws Exception {
+        UserResponse response = UserResponse.builder()
+                .id(2L).email("new@mysawit.com").role("Buruh").build();
+        when(authService.register(any())).thenReturn(response);
+
+        mockMvc.perform(post("/api/admin/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"nama":"Budi","username":"budi",
+                     "email":"new@mysawit.com","password":"password123","role":"Buruh"}
+                    """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("new@mysawit.com"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testGetAllUsers_WithFilters() throws Exception {
+        when(userService.getAllUsers("Budi", "mysawit", "Buruh")).thenReturn(java.util.List.of(
+                UserResponse.builder().id(1L).nama("Budi").email("budi@mysawit.com").role("Buruh").build()
+        ));
+
+        mockMvc.perform(get("/api/admin/users")
+                .param("nama", "Budi")
+                .param("email", "mysawit")
+                .param("role", "Buruh"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nama").value("Budi"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "Admin")
+    void testDeleteUser_Success() throws Exception {
+        mockMvc.perform(delete("/api/admin/users/2")
+                .param("currentAdminId", "1"))
+                .andExpect(status().isOk());
+
+        verify(userService).deleteUser(eq(2L), eq(1L));
     }
 }
