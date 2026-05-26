@@ -54,6 +54,22 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: penyakitsawitgila
         run: ./gradlew clean build check --configuration-cache
 
+      - name: Functional Test (Serenity)
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/mysawit
+          SPRING_DATASOURCE_USERNAME: mysawit
+          SPRING_DATASOURCE_PASSWORD: penyakitsawitgila
+        run: ./gradlew functionalTest --configuration-cache
+        continue-on-error: true
+
+      - name: Upload Serenity Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: serenity-functional-test-report
+          path: backend/build/site/serenity/
+          retention-days: 30
+
       - name: SonarCloud Analysis
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'pull_request' && github.base_ref == 'staging') }}
         env:
