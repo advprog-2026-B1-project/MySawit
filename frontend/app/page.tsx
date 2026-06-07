@@ -17,13 +17,13 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-10">
           <Link 
-            href="/auth/login" 
+            href="login" 
             className="w-full sm:w-auto px-8 py-3.5 bg-teal-500 text-white font-semibold rounded-xl transition-all hover:bg-teal-400 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-slate-900"
           >
             Masuk Akun
           </Link>
           <Link 
-            href="/auth/register" 
+            href="register" 
             className="w-full sm:w-auto px-8 py-3.5 bg-white/10 border border-white/20 text-white font-semibold rounded-xl transition-all hover:bg-white/20 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-slate-900"
           >
             Daftar Baru
