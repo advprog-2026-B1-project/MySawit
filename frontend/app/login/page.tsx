@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = `${process.env.NEXT_PUBLIC_API_URL}`;
+const BACKEND_URL = "https://107.23.124.17.nip.io";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -19,7 +19,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const res = await fetch(`${API}/api/login`, {
+            const res = await fetch(`/api/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -32,7 +32,7 @@ export default function LoginPage() {
             }
 
             // Ambil info user untuk redirect sesuai role
-            const meRes = await fetch(`${API}/api/me`, { credentials: "include" });
+            const meRes = await fetch(`/api/me`, { credentials: "include" });
             if (meRes.ok) {
                 const user = await meRes.json();
                 if (user.role === "Admin") router.push("/kebun");
@@ -119,7 +119,7 @@ export default function LoginPage() {
                         </button>
 
                         <a
-                            href={`${API}/oauth2/authorization/google`}
+                            href={`${BACKEND_URL}/oauth2/authorization/google`}
                             className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-white/10 text-bone/70 text-sm rounded-md hover:border-white/20 hover:text-bone transition"
                         >
                             <span>G</span>

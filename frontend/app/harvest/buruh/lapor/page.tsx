@@ -56,7 +56,7 @@ export default function LaporPanenBuruh() {
                 formData.append("photos", file);
             });
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/harvest`, {
+            const response = await fetch(`/api/harvest`, {
                 method: "POST",
                 credentials: "include",
                 body: formData,

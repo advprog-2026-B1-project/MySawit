@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 
-const API = `${process.env.NEXT_PUBLIC_API_URL}`;
+
 
 interface KebunDetail {
     id: number;
@@ -50,9 +50,9 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
             setLoading(true);
             try {
                 const [detailRes, usersRes, kebunRes] = await Promise.all([
-                    fetch(`${API}/api/kebun/${kebunId}/detail`, { credentials: "include" }),
-                    fetch(`${API}/api/users`, { credentials: "include" }),
-                    fetch(`${API}/api/kebun`, { credentials: "include" }),
+                    fetch(`/api/kebun/${kebunId}/detail`, { credentials: "include" }),
+                    fetch(`/api/users`, { credentials: "include" }),
+                    fetch(`/api/kebun`, { credentials: "include" }),
                 ]);
 
                 if (detailRes.ok) setDetail(await detailRes.json());
@@ -93,7 +93,7 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
     const handleAssignMandor = async () => {
         if (!selectedMandorId) return;
         setError(""); setSuccess("");
-        const res = await post(`${API}/api/kebun/assign-mandor`, { mandorId: Number(selectedMandorId), kebunId });
+        const res = await post(`/api/kebun/assign-mandor`, { mandorId: Number(selectedMandorId), kebunId });
         await handleResponse(res, "Mandor berhasil ditugaskan.");
         setShowMandorForm(false); setSelectedMandorId("");
     };
@@ -101,7 +101,7 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
     const handleReassignMandor = async () => {
         if (!targetKebunMandorId || !detail?.mandor) return;
         setError(""); setSuccess("");
-        const res = await post(`${API}/api/kebun/reassign-mandor`, {
+        const res = await post(`/api/kebun/reassign-mandor`, {
             mandorId: detail.mandor.id,
             oldKebunId: kebunId,
             newKebunId: Number(targetKebunMandorId),
@@ -113,7 +113,7 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
     const handleAssignSupir = async () => {
         if (!selectedSupirId) return;
         setError(""); setSuccess("");
-        const res = await post(`${API}/api/kebun/assign-supir`, { supirId: Number(selectedSupirId), kebunId });
+        const res = await post(`/api/kebun/assign-supir`, { supirId: Number(selectedSupirId), kebunId });
         await handleResponse(res, "Supir berhasil ditugaskan.");
         setShowSupirForm(false); setSelectedSupirId("");
     };
@@ -121,7 +121,7 @@ export default function KebunDetailPage({ params }: { params: Promise<{ id: stri
     const handleReassignSupir = async () => {
         if (!selectedSupirId || !targetKebunSupirId) return;
         setError(""); setSuccess("");
-        const res = await post(`${API}/api/kebun/reassign-supir`, {
+        const res = await post(`/api/kebun/reassign-supir`, {
             supirId: Number(selectedSupirId),
             oldKebunId: kebunId,
             newKebunId: Number(targetKebunSupirId),

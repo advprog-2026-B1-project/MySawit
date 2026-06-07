@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = `${process.env.NEXT_PUBLIC_API_URL}`;
+
 
 const ROLES = ["Buruh", "Mandor", "Supir", "Admin"];
 
@@ -32,7 +32,7 @@ export default function RegisterPage() {
         setLoading(true);
 
         try {
-            const res = await fetch(`${API}/api/register`, {
+            const res = await fetch(`/api/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

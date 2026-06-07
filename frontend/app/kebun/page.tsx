@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = `${process.env.NEXT_PUBLIC_API_URL}`;
+
 
 interface Kebun {
     id: number;
@@ -31,7 +31,7 @@ export default function KebunListPage() {
             if (searchNama) params.append("nama", searchNama);
             if (searchKode) params.append("kode", searchKode);
 
-            const res = await fetch(`${API}/api/kebun?${params}`, { credentials: "include" });
+            const res = await fetch(`/api/kebun?${params}`, { credentials: "include" });
 
             if (res.status === 401) {
                 router.push("/login");
@@ -63,7 +63,7 @@ export default function KebunListPage() {
         if (!confirm("Yakin ingin menghapus kebun ini?")) return;
         setError("");
         try {
-            const res = await fetch(`${API}/api/kebun/${id}`, { method: "DELETE", credentials: "include" });
+            const res = await fetch(`/api/kebun/${id}`, { method: "DELETE", credentials: "include" });
             if (res.status === 403) {
                 setError("Akses ditolak. Hanya Admin yang dapat menghapus kebun.");
                 return;

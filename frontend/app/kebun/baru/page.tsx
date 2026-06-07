@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = `${process.env.NEXT_PUBLIC_API_URL}`;
+
 
 interface FieldError {
     [key: string]: string;
@@ -61,7 +61,7 @@ export default function KebunBaruPage() {
         setLoading(true);
 
         try {
-            const res = await fetch(`${API}/api/kebun`, {
+            const res = await fetch(`/api/kebun`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

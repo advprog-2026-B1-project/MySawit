@@ -19,7 +19,7 @@ export default function AdminUserManagement() {
 
     async function loadUsers() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users`, {
+        const res = await fetch(`/api/admin/users`, {
           credentials: "include",
         });
         if (res.ok && isMounted) {
@@ -42,7 +42,7 @@ export default function AdminUserManagement() {
     if (!confirm("Yakin ingin menghapus pengguna ini?")) return;
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${id}?currentAdminId=${currentAdminId}`, {
+      const res = await fetch(`/api/admin/users/${id}?currentAdminId=${currentAdminId}`, {
         method: "DELETE",
         credentials: "include",
       });
