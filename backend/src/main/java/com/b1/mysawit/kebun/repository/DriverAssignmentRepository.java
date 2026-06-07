@@ -16,5 +16,7 @@ public interface DriverAssignmentRepository extends JpaRepository<DriverAssignme
 
     List<DriverAssignment> findAllByKebunIdAndUnassignedAtIsNull(Long kebunId);
 
+    Optional<DriverAssignment> findByDriverIdAndUnassignedAtIsNull(Long driverId);
+
     long countByKebunIdAndUnassignedAtIsNull(Long kebunId);
 }

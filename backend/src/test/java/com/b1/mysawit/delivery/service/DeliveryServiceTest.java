@@ -8,6 +8,7 @@ import com.b1.mysawit.delivery.dto.UpdateDeliveryStatusRequest;
 import com.b1.mysawit.domain.Delivery;
 import com.b1.mysawit.domain.HasilPanen;
 import com.b1.mysawit.domain.User;
+import com.b1.mysawit.kebun.facade.KebunAssignmentFacade;
 import com.b1.mysawit.repository.DeliveryRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,9 @@ class DeliveryServiceTest {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private KebunAssignmentFacade kebunAssignmentFacade;
+
     private DeliveryService deliveryService;
 
     @BeforeEach
@@ -45,7 +49,7 @@ class DeliveryServiceTest {
                 deliveryRepository,
                 entityManager,
                 new DeliveryMapper(),
-                new DeliveryValidator(),
+                new DeliveryValidator(kebunAssignmentFacade),
             new DeliveryConstructor(),
             new DriverTripLoadValidator(deliveryRepository),
             new DeliveryAdminDecisionHandler(),

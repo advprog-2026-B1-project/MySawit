@@ -43,6 +43,10 @@ management:
     tags:
       application: MySawit
 
+mysawit:
+  features:
+    delivery-enabled: ${MYSAWIT_DELIVERY_ENABLED:true}
+
 server:
   forward-headers-strategy: native
   servlet:
@@ -50,4 +54,3 @@ server:
       cookie:
         same-site: none
         secure: true
-        http-only: true
