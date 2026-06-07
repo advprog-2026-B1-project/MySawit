@@ -44,7 +44,7 @@ public class HarvestController {
             email = ((org.springframework.security.core.userdetails.User) principal).getUsername();
         }
         else if (principal instanceof String) {
-            email = (String) principal;
+            email = (String) principal; 
         }
 
         if (email == null) {

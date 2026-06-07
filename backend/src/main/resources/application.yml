@@ -45,3 +45,9 @@ management:
 
 server:
   forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
+        http-only: true
