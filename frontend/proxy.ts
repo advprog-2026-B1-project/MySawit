@@ -6,6 +6,10 @@ const PUBLIC_PATHS = ["/login", "/register", "/"];
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
+    if (pathname.startsWith("/api/") || pathname.startsWith("/oauth2/")) {
+        return NextResponse.next();
+    }
+
     const isPublic = PUBLIC_PATHS.some(
         (p) => pathname === p || pathname.startsWith(p + "/")
     );
